@@ -1,3 +1,4 @@
+// app/campaign/[slug]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -10,6 +11,7 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState('');
   const [donorName, setDonorName] = useState('');
+  const [donorPhone, setDonorPhone] = useState(''); // 🚀 STATE BARU UNTUK WHATSAPP
   const [submitting, setSubmitting] = useState(false);
   
   // State untuk mengatur perpindahan tab menu secara dinamis
@@ -68,6 +70,7 @@ export default function CampaignDetailPage() {
           slug: program.slug,
           amount: cleanAmount,
           donorName: donorName.trim() || 'Hamba Allah',
+          donorPhone: donorPhone.trim(), // 🚀 DIKIRIMKAN LANGSUNG KE API CHECKOUT FRONTEND
         }),
       });
 
@@ -217,6 +220,18 @@ export default function CampaignDetailPage() {
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
+              />
+            </div>
+
+            {/* 🚀 FORM INPUT BARU: NOMOR WHATSAPP */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
+              <input
+                type="tel"
+                placeholder="Contoh: 081234567890"
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium"
+                value={donorPhone}
+                onChange={(e) => setDonorPhone(e.target.value)}
               />
             </div>
 
