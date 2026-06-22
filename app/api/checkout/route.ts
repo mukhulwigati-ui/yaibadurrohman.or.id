@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const prefix = slug.toUpperCase().includes('BERAS') ? 'BERAS' : slug.toUpperCase().includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // 3. Kunci data Nama & WhatsApp dari form frontend langsung ke Sanity (Status: Pending)
+    // 3. Kunci data ke Sanity (Status: Pending)
     await client.create({
       _type: 'donationTransaction',
       orderId: generatedOrderId,
@@ -35,17 +35,19 @@ export async function POST(request: Request) {
       slug: slug,
     });
 
-    console.log(`🔒 TRANSAKSI PENDING DIKUNCI: ${generatedOrderId} - ${donorName}`);
+    console.log(`🔒 TRANSAKSI PENDING DIKUNCI: ${generatedOrderId}`);
 
-    // 4. STRATEGI UTAMA: Bikin URL Pembayaran Sesuai Panduan Resmi Pakasir (Bagian B)
-    // Format: https://app.pakasir.com/pay/{slugProyekPakasir}/{amount}?order_id={order_id}&qris_only=1
+    // 4. STRATEGI REDIRECT Halaman Thank-You Website Anda
+    // Sesuaikan domain di bawah ini dengan URL live domain Anda (indonesiamengaji.net)
+    const targetRedirectUrl = `https://indonesiamengaji.net/thank-you?order_id=${generatedOrderId}`;
+
     const proyekSlugPakasir = "yayasan-generasi-indonesia-mengaji"; 
-    const cleanAmount = Math.floor(Number(amount)); // Pastikan berupa angka bulat tanpa titik/spasi
+    const cleanAmount = Math.floor(Number(amount));
 
-    // Kita tambahkan opsi &qris_only=1 supaya donatur langsung melihat QR code QRIS tanpa ribet pilih metode lain
-    const officialPakasirUrl = `https://app.pakasir.com/pay/${proyekSlugPakasir}/${cleanAmount}?order_id=${generatedOrderId}&qris_only=1`;
+    // Gabungkan parameter qris_only dan custom redirect dari panduan Pakasir
+    const officialPakasirUrl = `https://app.pakasir.com/pay/${proyekSlugPakasir}/${cleanAmount}?order_id=${generatedOrderId}&qris_only=1&redirect=${encodeURIComponent(targetRedirectUrl)}`;
 
-    // 5. Kembalikan URL yang valid ke frontend Next.js agar user langsung dialihkan
+    // 5. Kembalikan URL ke frontend Next.js
     return NextResponse.json({
       success: true,
       paymentUrl: officialPakasirUrl
