@@ -1,8 +1,18 @@
 // sanity.config.ts
-import { defineConfig } from 'sanity';
+import { defineConfig, buildLegacyTheme } from 'sanity'; // 🚀 Import buildLegacyTheme
 import { structureTool } from 'sanity/structure';
-import React from 'react'; // 🚀 Pastikan React di-import
+import React from 'react';
 import { schemaTypes } from './sanity/schemaTypes';
+
+// 🚀 BUAT THEME EMERALD GREEN SECARA RESMI & VALID
+const emeraldTheme = buildLegacyTheme({
+  '--black': '#1f2937',
+  '--white': '#ffffff',
+  '--brand-primary': '#059669',
+  '--component-bg': '#ffffff',
+  '--component-text-color': '#1f2937',
+  '--focus-color': '#fbbf24',
+});
 
 export default defineConfig({
   name: 'default',
@@ -18,7 +28,10 @@ export default defineConfig({
     types: schemaTypes,
   },
 
-  // 🚀 TAMPILAN PREMIUM BEBAS EROR PARSING TSX
+  // Gunakan theme yang sudah di-build secara valid oleh Sanity helper
+  theme: emeraldTheme,
+
+  // Kustomisasi Top-Bar Navbar Komponen
   studio: {
     components: {
       navbar: (props) => {
@@ -60,13 +73,4 @@ export default defineConfig({
       },
     },
   },
-
-  theme: {
-    '--black': '#1f2937',
-    '--white': '#ffffff',
-    '--brand-primary': '#059669',
-    '--component-bg': '#ffffff',
-    '--component-text-color': '#1f2937',
-    '--focus-color': '#fbbf24',
-  }
 });
