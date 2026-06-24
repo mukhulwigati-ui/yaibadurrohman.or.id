@@ -1,14 +1,14 @@
 // sanity.config.ts
-import { defineConfig, buildLegacyTheme } from 'sanity'; // 🚀 Import buildLegacyTheme
+import { defineConfig, buildLegacyTheme } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import React from 'react';
 import { schemaTypes } from './sanity/schemaTypes';
 
-// 🚀 BUAT THEME EMERALD GREEN SECARA RESMI & VALID
+// BUAT THEME DENGAN AKSEN HIJAU YANG LEBIH TERANG DAN SEGAR
 const emeraldTheme = buildLegacyTheme({
   '--black': '#1f2937',
   '--white': '#ffffff',
-  '--brand-primary': '#059669',
+  '--brand-primary': '#10b981', // Hijau terang emerald murni
   '--component-bg': '#ffffff',
   '--component-text-color': '#1f2937',
   '--focus-color': '#fbbf24',
@@ -28,10 +28,8 @@ export default defineConfig({
     types: schemaTypes,
   },
 
-  // Gunakan theme yang sudah di-build secara valid oleh Sanity helper
   theme: emeraldTheme,
 
-  // Kustomisasi Top-Bar Navbar Komponen
   studio: {
     components: {
       navbar: (props) => {
@@ -42,28 +40,39 @@ export default defineConfig({
             'div',
             {
               style: {
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                // Menggunakan background hijau terang solid sesuai request
+                background: '#10b981', 
                 color: 'white',
-                padding: '10px 20px',
+                padding: '12px 20px',
                 display: 'flex',
                 alignItems: 'center',
-                borderBottom: '1px solid #064e3b',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                gap: '10px'
+                borderBottom: '1px solid #059669',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                gap: '12px'
               }
             },
-            React.createElement('span', { style: { fontSize: '20px' } }, '💚'),
+            // 🚀 GANTI EMOT ICON MENJADI LOGO ASLI RELEVAN
+            React.createElement('img', {
+              src: '/images/logo-mengaji.png',
+              alt: 'Logo Indonesia Mengaji',
+              style: {
+                height: '32px', // Menyesuaikan tinggi navbar studio
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block'
+              }
+            }),
             React.createElement(
               'div',
               null,
               React.createElement(
                 'h1',
-                { style: { margin: 0, fontSize: '14px', fontWeight: 900, letterSpacing: '0.5px', textTransform: 'uppercase' } },
+                { style: { margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' } },
                 'Yayasan Generasi Indonesia Mengaji'
               ),
               React.createElement(
                 'p',
-                { style: { margin: 0, fontSize: '10px', color: '#a7f3d0', fontWeight: 600 } },
+                { style: { margin: 0, fontSize: '10px', color: '#d1fae5', fontWeight: 600, letterSpacing: '0.3px' } },
                 'DASHBOARD MANAJEMEN UTAMA'
               )
             )
