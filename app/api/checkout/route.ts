@@ -41,12 +41,11 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // 🚀 KREDENSIAL PROYEK PAKASIR.COM
-    // FIXED: Menyediakan fallback aman 'lazisku' agar kebal dari error required tag (image_eb46ad.png)
-    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazisku';
+    // 🚀 FIXED LENGKAP: Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas image_eba182.png
+    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazis-khoiro-ummah';
     const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
 
-    // 🚀 COGNITIVE GUARD: Validasi internal sebelum fetch dilakukan agar parameter tidak kosong ke API Pakasir
+    // Validasi internal sebelum fetch dilakukan agar parameter tidak kosong ke API Pakasir
     if (!pakasirProjectSlug || !pakasirProjectSlug.trim()) {
       return NextResponse.json(
         { success: false, error: 'Internal Server Error: Identitas nama project gateway kosong.' },
@@ -58,7 +57,7 @@ export async function POST(request: Request) {
       console.error('⚠️ Kredensial PAKASIR_API_KEY belum dikonfigurasi di file environment variables server!');
     }
 
-    // 🚀 FIXED LENGKAP (BAGIAN C.2 & C.3): Endpoint dinamis sesuai pilihan (qris, bri_va, bni_va, dll.)
+    // Endpoint dinamis sesuai pilihan (qris, bri_va, bni_va, dll.)
     const targetPakasirUrl = `https://app.pakasir.com/api/transactioncreate/${cleanMethod}`;
 
     const pakasirResponse = await fetch(targetPakasirUrl, {
@@ -81,11 +80,10 @@ export async function POST(request: Request) {
       throw new Error(pakasirData.message || `Gagal membuat transaksi ${cleanMethod} ke gateway API Pakasir.`);
     }
 
-    // 🚀 FIXED DATA EXTRACTION (BAGIAN C.2 RESPONS):
     // Properti ini berisi raw QR string jika memilih qris, atau nomor VA jika memilih bank transfer
     const paymentNumber = pakasirData.payment.payment_number || '';
     
-    // Penyusunan Link web-checkout alternatif (Bagian B)
+    // Penyusunan Link web-checkout alternatif
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
     const isQrisOnly = cleanMethod === 'qris' ? '&qris_only=1' : '';
     
@@ -101,12 +99,12 @@ export async function POST(request: Request) {
       donorName: String(donorName),
       donorPhone: String(donorPhone),
       amount: Number(cleanAmountNumber),         
-      totalAmount: Number(pakasirData.payment.total_payment || cleanAmountNumber), // Menyimpan akumulasi total pasca biaya admin gateway
+      totalAmount: Number(pakasirData.payment.total_payment || cleanAmountNumber), 
       status: 'pending',
       slug: String(slug),
-      paymentMethod: String(cleanMethod), // Menyimpan jejak pilihan metode pembayaran asli di CMS
+      paymentMethod: String(cleanMethod), 
       paymentUrl: String(paymentUrl), 
-      paymentNumber: String(paymentNumber), // Menyimpan raw string QR atau Nomor VA untuk cadangan render/log
+      paymentNumber: String(paymentNumber), 
     });
 
     console.log(`🔒 TRANSAKSI MULTI-METHOD BERHASIL DICATAT: ${generatedOrderId} | Metode: ${cleanMethod} | Total: Rp ${cleanAmountNumber}`);
@@ -117,8 +115,8 @@ export async function POST(request: Request) {
       orderId: generatedOrderId,
       amount: cleanAmountNumber,
       paymentMethod: cleanMethod,
-      paymentUrl: paymentUrl,       // Link pengalihan halaman resmi Pakasir
-      paymentNumber: paymentNumber, // Nomor VA atau string QR data mentah
+      paymentUrl: paymentUrl,       
+      paymentNumber: paymentNumber, 
     });
 
   } catch (error: any) {
