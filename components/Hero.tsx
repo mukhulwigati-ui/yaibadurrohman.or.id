@@ -28,8 +28,8 @@ export default function Hero() {
           {/* Tinggi kontainer tetap besar h-36/40 agar logo dominan */}
           <div className="relative h-36 md:h-40 w-auto flex items-center justify-center overflow-hidden">
             <img 
-              src="/images/indonesiamengaji.jpeg" 
-              alt="Logo Indonesia Mengaji" 
+              src="/images/logo-lazisku.png" 
+              alt="Logo lazisku" 
               className="h-full w-auto object-contain"
             />
           </div>
@@ -45,7 +45,7 @@ export default function Hero() {
 
         {/* Deskripsi Singkat (Sub-headline) */}
         <p className="text-base md:text-lg text-gray-300 mb-12 max-w-3xl leading-relaxed font-medium">
-          Salurkan bantuan terbaik Anda melalui <span className="font-bold text-white">Yayasan Generasi Indonesia Mengaji</span> secara transparan, amanah, dan instan menggunakan QRIS. Setiap rupiah yang Anda donasikan adalah jembatan kebaikan bagi sesama.
+          Salurkan bantuan terbaik Anda melalui <span className="font-bold text-white">Yayasan Khoiro Ummah Bina Umat</span> secara transparan, amanah, dan instan menggunakan QRIS. Setiap rupiah yang Anda donasikan adalah jembatan kebaikan bagi sesama.
         </p>
 
         {/* Tombol Ajakan Bertindak (CTA Button) */}
