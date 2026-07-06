@@ -19,8 +19,8 @@ export default function Footer() {
             <div className="flex items-center">
               <div className="relative h-11 w-auto flex items-center overflow-hidden">
                 <img 
-                  src="/images/logo-mengaji.png" 
-                  alt="Logo Indonesia Mengaji" 
+                  src="/images/lazisku.png" 
+                  alt="Logo lazisku.com" 
                   className="h-full w-auto object-contain"
                 />
               </div>
