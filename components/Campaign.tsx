@@ -1,18 +1,31 @@
+// components/Campaign.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function Campaign() {
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+// 🚀 FIXED TYPESCRIPT INTERFACE: Menghilangkan eror build IntrinsicAttributes
+interface CampaignProps {
+  initialData?: any[];
+}
+
+export default function Campaign({ initialData = [] }: CampaignProps) {
+  // Gunakan data dari server jika tersedia, jika tidak gunakan array kosong terlebih dahulu
+  const [programs, setPrograms] = useState<any[]>(initialData.length > 0 ? initialData : []);
+  const [loading, setLoading] = useState(initialData.length === 0);
   
   // 🚀 STATE UNTUK FILTER & PENCARIAN
   const [selectedCategory, setSelectedCategory] = useState('SEMUA');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // 🚀 FIXED DYNAMIC FETCH: Ditambahkan parameter timestamp (?v=) dan cache: no-store agar kebal cache Next.js!
+    // 🚀 FIXED HYDRATION LOGIC: Hanya fetch dari client-side jika initialData tidak dikirim dari Server Component
+    if (initialData.length > 0) {
+      setPrograms(initialData);
+      setLoading(false);
+      return;
+    }
+
     fetch('/api/programs?v=' + Date.now(), {
       cache: 'no-store',
       headers: {
@@ -29,7 +42,7 @@ export default function Campaign() {
         console.error('Campaign component fetch error:', err);
         setLoading(false);
       });
-  }, []);
+  }, [initialData]);
 
   if (loading) {
     return <div className="text-center py-16 text-gray-500 font-medium text-sm">Memuat program kebaikan...</div>;
