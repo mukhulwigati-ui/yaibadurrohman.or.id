@@ -42,11 +42,20 @@ export async function POST(request: Request) {
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
     // 🚀 KREDENSIAL PROYEK PAKASIR.COM
-    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || '';
+    // FIXED: Menyediakan fallback aman 'lazisku' agar kebal dari error required tag (image_eb46ad.png)
+    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazisku';
     const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
 
-    if (!pakasirProjectSlug || !pakasirApiKey) {
-      console.error('⚠️ Kredensial Pakasir (PAKASIR_PROJECT / PAKASIR_API_KEY) belum dikonfigurasi di .env!');
+    // 🚀 COGNITIVE GUARD: Validasi internal sebelum fetch dilakukan agar parameter tidak kosong ke API Pakasir
+    if (!pakasirProjectSlug || !pakasirProjectSlug.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Internal Server Error: Identitas nama project gateway kosong.' },
+        { status: 500 }
+      );
+    }
+
+    if (!pakasirApiKey || !pakasirApiKey.trim()) {
+      console.error('⚠️ Kredensial PAKASIR_API_KEY belum dikonfigurasi di file environment variables server!');
     }
 
     // 🚀 FIXED LENGKAP (BAGIAN C.2 & C.3): Endpoint dinamis sesuai pilihan (qris, bri_va, bni_va, dll.)
@@ -58,7 +67,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        project: pakasirProjectSlug,
+        project: pakasirProjectSlug.trim(),
         order_id: generatedOrderId,
         amount: cleanAmountNumber,
         api_key: pakasirApiKey,
