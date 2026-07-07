@@ -28,7 +28,7 @@ export default function HomePage() {
                 Program Galang Dana
               </h2>
               <p className="text-gray-500 mt-1 font-medium text-sm">
-                Salurkan infak terbaik Anda via QRIS Instan untuk berbagai sektor kebaikan
+                Salurkan infak terbaik Anda untuk berbagai sektor kebaikan
               </p>
             </div>
             

@@ -13,10 +13,11 @@ const portableTextComponents = {
       if (!value?.asset?.url) return null;
       return (
         <div className="my-6 space-y-2 w-full">
-          <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm aspect-[16/9] md:aspect-[21/9]">
+          {/* 🚀 FIXED: Mengubah rounded-xl menjadi rounded-none untuk gambar di dalam konten artikel */}
+          <div className="rounded-none overflow-hidden bg-gray-50 border border-gray-100 shadow-sm aspect-[16/9] md:aspect-[21/9]">
             <img 
               src={value.asset.url} 
-              alt={typeof value.alt === 'string' ? value.alt : 'Wasilah News Gambar'} 
+              alt={typeof value.alt === 'string' ? value.alt : 'Lazisku News Gambar'} 
               className="w-full h-full object-cover"
             />
           </div>
@@ -71,7 +72,6 @@ export default function BlogDetailPage() {
 
   const { article, sidebarCampaigns, allNews } = data;
   
-  // Fungsi pembantu aman untuk mengekstrak string murni dari field teks manapun
   const renderSafeString = (val: any, fallback: string = ''): string => {
     if (!val) return fallback;
     if (typeof val === 'string') return val;
@@ -117,7 +117,7 @@ export default function BlogDetailPage() {
 
           {/* Meta Data */}
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 border-b border-gray-100 pb-4 font-semibold w-full">
-            <span className="text-gray-700">Oleh: <strong className="text-emerald-600 font-black">Wasilah News Team</strong></span>
+            <span className="text-gray-700">Oleh: <strong className="text-emerald-600 font-black">Tim Media Lazisku</strong></span>
             <span className="hidden sm:inline text-gray-300">•</span>
             <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
               {categoryString}
@@ -128,7 +128,8 @@ export default function BlogDetailPage() {
 
           {/* Foto Utama Artikel */}
           <div className="space-y-2 w-full">
-            <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
+            {/* 🚀 FIXED: Mengubah rounded-2xl menjadi rounded-none agar ujung gambar lurus (Sejalan dengan image_6a747b.jpg) */}
+            <div className="rounded-none overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
               <img 
                 src={typeof article?.imageUrl === 'string' ? article.imageUrl : '/images/placeholder.jpg'} 
                 alt={renderSafeString(article?.alt, titleString)} 

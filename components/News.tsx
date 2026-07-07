@@ -41,7 +41,7 @@ export default function News() {
         <h2 className="text-xl font-extrabold text-[#333333] tracking-tight">
           Kabar & Informasi
         </h2>
-        <p className="text-gray-400 text-xs font-medium">Ikuti perkembangan aktivitas dan penyaluran amanah di lapangan</p>
+        <p className="text-gray-400 text-xs font-medium">Ikuti perkembangan aktivitas LAZIS KHOIRO UMMAH</p>
       </div>
 
       {/* Grid Berita (4 Kolom di Desktop, Responsif) */}
