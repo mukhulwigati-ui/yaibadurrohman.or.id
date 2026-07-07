@@ -114,7 +114,7 @@ export default function TentangKamiPage() {
           </p>
           <div className="pt-2">
             <Link 
-              href="/"
+              href="/program"
               className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-none shadow-md shadow-emerald-100 transition duration-150"
             >
               Lihat Program Donasi 🚀

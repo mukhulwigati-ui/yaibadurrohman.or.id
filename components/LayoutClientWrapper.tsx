@@ -13,8 +13,8 @@ export default function LayoutClientWrapper({ children }: { children: React.Reac
   const isStudioPage = pathname?.startsWith('/studio');
 
   // Konfigurasi WhatsApp API
-  const whatsappNumber = '6282230076051'; 
-  const defaultMessage = encodeURIComponent('Halo Admin Indonesia Mengaji, saya ingin bertanya mengenai program donasi...');
+  const whatsappNumber = '6281225147373'; 
+  const defaultMessage = encodeURIComponent('Halo Admin lazisku, saya ingin bertanya mengenai program donasi...');
   const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`;
 
   return (
