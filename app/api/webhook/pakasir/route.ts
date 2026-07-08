@@ -16,7 +16,7 @@ const client = createClient({
 });
 
 // ===================================================================
-// WEBHOOK PAKASIR AUTOMATION (SESUAI DOKUMEN BAGIAN D)
+// WEBHOOK PAKASIR AUTOMATION + FONNTE NOTIFICATION
 // ===================================================================
 export async function POST(request: Request) {
   try {
@@ -46,18 +46,18 @@ export async function POST(request: Request) {
     }
 
     // ===================================================================
-    // 2. AMBIL DATA NAMA ASLI LANGSUNG DARI INPUT FORM FRONTEND (SANITY)
+    // 2. AMBIL DATA NAMA & NO WA ASLI LANGSUNG DARI INPUT FORM FRONTEND (SANITY)
     // ===================================================================
-    // Menghindari kehilangan nama akibat filter gateway Pakasir dengan menarik langsung
-    // dari skema 'donationTransaction' pending yang dibuat saat user klik bayar di frontend.
     const transactionQuery = `*[_type == "donationTransaction" && orderId == $orderId][0]`;
     const pendingTransaction = await client.fetch(transactionQuery, { orderId: cleanOrderId });
 
     let donorNameFromForm = "Hamba Allah";
+    let donorPhoneFromForm = "";
     let programSlug = "sedekah-subuh"; // Default fallback aman
+    let paymentMethodUsed = "QRIS";
 
     if (pendingTransaction) {
-      // Jika transaksi di Sanity sudah berstatus 'success', hentikan proses agar tidak duplikat perhitungan
+      // Jika transaksi di Sanity sudah berstatus 'success', hentikan proses agar tidak duplikat perhitungan/spam WA
       if (pendingTransaction.status === 'success') {
         console.log(`♻️ Transaksi ${cleanOrderId} sudah pernah diproses sebelumnya (Status Sanity: success).`);
         return NextResponse.json({ success: true, message: "Transaksi sudah sukses diproses sebelumnya." });
@@ -66,8 +66,14 @@ export async function POST(request: Request) {
       if (pendingTransaction.donorName && String(pendingTransaction.donorName).trim() !== "") {
         donorNameFromForm = String(pendingTransaction.donorName).trim();
       }
+      if (pendingTransaction.donorPhone && String(pendingTransaction.donorPhone).trim() !== "") {
+        donorPhoneFromForm = String(pendingTransaction.donorPhone).trim();
+      }
       if (pendingTransaction.slug) {
         programSlug = String(pendingTransaction.slug).toLowerCase().trim();
+      }
+      if (pendingTransaction.paymentMethod) {
+        paymentMethodUsed = String(pendingTransaction.paymentMethod).toUpperCase();
       }
       
       // Update status data transaksi penampung sementara di Sanity agar tidak terproses ganda
@@ -93,7 +99,7 @@ export async function POST(request: Request) {
     // Pastikan nominal diambil dengan benar (prioritas dari callback Pakasir, fallback dari record transaksi)
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
     
-    // Format tanggal Indonesia (contoh: 6 Juli 2026)
+    // Format tanggal Indonesia (contoh: 8 Juli 2026)
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -117,20 +123,61 @@ export async function POST(request: Request) {
           {
             _key: `donor-${cleanOrderId}-${Math.random().toString(36).substring(2, 5)}`,
             orderId: cleanOrderId,
-            name: donorNameFromForm, // Nama asli dari form pengisian frontend sukses disuntikkan
+            name: donorNameFromForm,
             amount: donationAmount,
             date: currentDate
           }
         ])
         .commit();
+
+      // ===================================================================
+      // 🚀 5. OTOMATISASI KIRIM PESAN TERIMA KASIH WA VIA FONNTE API
+      // ===================================================================
+      if (donorPhoneFromForm !== '') {
+        const messageText = 
+          `*Terima Kasih Atas Donasi Anda* 🙏🌟\n\n` +
+          `Assalamualaikum wr. wb.,\n` +
+          `Jazakumullah Khairan Katsiran kepada Bapak/Ibu/Sdr *${donorNameFromForm}*.\n\n` +
+          `Alhamdulillah, pembayaran donasi Anda telah kami terima dengan rincian berikut:\n` +
+          `• *ID Transaksi:* ${cleanOrderId}\n` +
+          `• *Nominal Infak:* Rp ${donationAmount.toLocaleString('id-ID')}\n` +
+          `• *Metode:* ${paymentMethodUsed}\n` +
+          `• *Program:* ${finalProgram.title}\n\n` +
+          `Semoga infak yang Anda keluarkan menjadi pembersih harta, pelipat ganda pahala, serta mengalirkan keberkahan yang tiada putus untuk Anda sekeluarga. Aamiin Yaa Rabbal 'Aalamiin.\n\n` +
+          `Salam hangat,\n` +
+          `*LAZIS Khoiro Ummah* (lazisku.com)`;
+
+        try {
+          const fonnteResponse = await fetch('https://api.fonnte.com/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': process.env.FONNTE_TOKEN || '', // Membaca token dari environment variable server Anda
+            },
+            body: new URLSearchParams({
+              target: donorPhoneFromForm,
+              message: messageText,
+              countryCode: '62',
+            }),
+          });
+
+          const fonnteData = await fonnteResponse.json();
+          if (fonnteData.status) {
+            console.log(`📱 Notifikasi WA sukses terkirim lewat Fonnte ke: ${donorPhoneFromForm}`);
+          } else {
+            console.error(`❌ Fonnte API merespons gagal:`, fonnteData.reason || 'Penyebab tidak diketahui');
+          }
+        } catch (fonnteErr) {
+          console.error(`🔥 Gagal menghubungi endpoint API Fonnte:`, fonnteErr);
+        }
+      }
+
     } else {
       console.log(`♻️ Transaksi ${cleanOrderId} terdeteksi di dalam array donors program utama.`);
     }
 
-    // Selalu kembalikan response JSON dengan status HTTP 200 OK ke Pakasir agar server mereka berhenti mengirim hit ulang webhook
     return NextResponse.json({
       success: true,
-      message: `Sukses otomatis! Dana terverifikasi dan nama ${donorNameFromForm} berhasil ditampilkan.`
+      message: `Sukses otomatis! Dana terverifikasi, nama ${donorNameFromForm} tampil, dan notifikasi WA diproses.`
     });
 
   } catch (error: any) {
