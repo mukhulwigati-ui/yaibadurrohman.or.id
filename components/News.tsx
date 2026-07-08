@@ -52,8 +52,8 @@ export default function News() {
             key={news.id || news.slug} 
             className="group flex flex-col space-y-3 cursor-pointer"
           >
-            {/* Wrapper Gambar Miniatur Berita */}
-            <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
+            {/* Wrapper Gambar Miniatur Berita: rounded-none di sini */}
+            <div className="relative aspect-[16/10] w-full rounded-none overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
               <img 
                 src={news.image || '/images/placeholder.jpg'} 
                 alt={news.title} 
