@@ -23,14 +23,14 @@ export default function Hero() {
       {/* 3. Konten Utama Hero (Teks & Tombol) */}
       <div className="relative z-20 max-w-5xl mx-auto px-6 md:px-12 py-20 text-center flex flex-col items-center">
         
-        {/* 🚀 FIXED AREA LOGO: Background putih dibuat super tipis (p-2) agar pas mendekati logo */}
-        <div className="flex items-center mb-10 bg-white border border-white/20 p-2 rounded-2xl shadow-xl transition-all duration-500 ease-out cursor-pointer hover:scale-[1.03] hover:bg-white hover:border-emerald-400/30 hover:shadow-[0_0_50px_rgba(16,185,129,0.5)] overflow-hidden">
-          {/* Tinggi kontainer tetap besar h-36/40 agar logo dominan */}
-          <div className="relative h-36 md:h-40 w-auto flex items-center justify-center overflow-hidden">
+        {/* 🚀 FIXED AREA LOGO: Bersih tanpa kotak putih, menyala terang benderang saat disentuh kursor */}
+        <div className="flex items-center mb-10 cursor-pointer group select-none">
+          {/* Kontainer tanpa bg-white & tanpa border kotak */}
+          <div className="relative h-36 md:h-40 w-auto flex items-center justify-center transition-all duration-500 ease-out group-hover:scale-105">
             <img 
               src="/images/logo-lazisku.png" 
               alt="Logo lazisku" 
-              className="h-full w-auto object-contain"
+              className="h-full w-auto object-contain transition-all duration-500 filter drop-shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:drop-shadow-[0_0_35px_rgba(52,211,153,0.9)]"
             />
           </div>
         </div>
@@ -51,7 +51,7 @@ export default function Hero() {
         {/* Tombol Ajakan Bertindak (CTA Button) */}
         <Link
           href="/program"
-          className="group relative inline-flex items-center justify-center gap-2.5 bg-emerald-600 text-white font-black px-12 py-5 rounded-2xl text-sm uppercase tracking-widest transition-all duration-300 hover:bg-emerald-700 shadow-xl shadow-emerald-950/30 overflow-hidden"
+          className="group relative inline-flex items-center justify-center gap-2.5 bg-emerald-600 text-white font-black px-12 py-5 rounded-none text-sm uppercase tracking-widest transition-all duration-300 hover:bg-emerald-700 shadow-xl shadow-emerald-950/30 overflow-hidden"
         >
           {/* Efek Kilatan Cahaya saat Hover */}
           <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
