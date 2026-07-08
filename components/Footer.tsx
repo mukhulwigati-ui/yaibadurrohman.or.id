@@ -46,6 +46,9 @@ export default function Footer() {
               <li>
                 <Link href="/kontak" className="hover:text-emerald-600 transition-colors">Hubungi Kami</Link>
               </li>
+			  <li>
+                <Link href="https://onislam.web.id" className="hover:text-emerald-600 transition-colors">Media Islam</Link>
+              </li>
             </ul>
           </div>
 

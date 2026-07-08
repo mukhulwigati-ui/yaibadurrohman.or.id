@@ -53,19 +53,20 @@ function SearchResultsContent() {
         {!loading && results.length > 0 ? (
           <div className="space-y-7 max-w-3xl">
             {results.map((item) => {
-              const targetUrl = item.type === 'news' ? `/blog/${item.slug}` : `/campaign/${item.slug}`;
+              // Menyesuaikan target routing dengan struktur proyek lazisku.com
+              const targetUrl = item.type === 'news' ? `/blog/${item.slug}` : `/program/${item.slug}`;
               
-              {/* 🚀 FIXED: Mengubah teks domain tiruan Google menjadi indonesiamengaji.net */}
+              // 🚀 FIXED: Menyelaraskan teks URL display tiruan Google ke lazisku.com
               const displayUrl = item.type === 'news' 
-                ? `https://indonesiamengaji.net › blog › ${item.slug}` 
-                : `https://indonesiamengaji.net › campaign › ${item.slug}`;
+                ? `https://www.lazisku.com › blog › ${item.slug}` 
+                : `https://www.lazisku.com › program › ${item.slug}`;
 
               return (
-                <div key={item.id} className="group flex flex-col space-y-1">
+                <div key={item.id} className="group flex flex-col space-y-1 text-left">
                   
-                  {/* URL Hijau/Abu-abu khas Google */}
+                  {/* URL Hijau/Abu-abu khas Google (Siku tajam / rounded-none) */}
                   <div className="flex items-center space-x-1.5 text-xs text-gray-500 font-normal truncate max-w-full">
-                    <span className="p-0.5 bg-gray-50 border border-gray-100 rounded-full text-gray-400 shrink-0">
+                    <span className="p-0.5 bg-gray-50 border border-gray-100 rounded-none text-gray-400 shrink-0">
                       <Globe className="w-3 h-3" />
                     </span>
                     <span className="truncate">{displayUrl}</span>
@@ -76,11 +77,11 @@ function SearchResultsContent() {
                     {item.title}
                   </Link>
 
-                  {/* Deskripsi Snippet */}
+                  {/* Deskripsi Snippet Khusus LAZIS Khoiro Ummah */}
                   <p className="text-sm text-[#4d5156] leading-relaxed font-normal pt-0.5 line-clamp-2">
                     {item.type === 'news' 
-                      ? `Laporan berkala Wasilah News Team mengenai update penanganan program ${item.title}. Simak transparansi penyaluran amanah selengkapnya...`
-                      : `Program kebaikan kategori ${item.category || 'Inspirasi'}. Salurkan infak terbaik Anda dengan praktis dan amanah melalui scan QRIS otomatis...`
+                      ? `Kabar dan laporan penyaluran berkala dari Tim Media LAZIS Khoiro Ummah mengenai update penanganan program ${item.title}. Simak akuntabilitas selengkapnya...`
+                      : `Program kebaikan Ziswaf LAZIS Khoiro Ummah untuk kategori ${item.category || 'Inspirasi'}. Salurkan infak terbaik Anda secara praktis, amanah, dan instan via QRIS...`
                     }
                   </p>
 
@@ -92,14 +93,14 @@ function SearchResultsContent() {
 
         {/* Kondisi Jika Data Kosong */}
         {!loading && results.length === 0 && queryParam.trim() !== '' && (
-          <div className="py-8 space-y-3 max-w-2xl">
+          <div className="py-8 space-y-3 max-w-2xl text-left">
             <p className="text-base text-gray-800">
-              Penelusuran Anda - <strong className="font-semibold">{queryParam}</strong> - tidak cocok dengan dokumen program atau berita apa pun.
+              Penelusuran Anda - <strong className="font-semibold">{queryParam}</strong> - tidak cocok dengan dokumen program atau kabar berita apa pun di LAZIS Khoiro Ummah.
             </p>
             <ul className="list-disc pl-6 text-sm text-gray-600 space-y-1 font-normal">
-              <li>Pastikan semua kata dieja dengan benar.</li>
-              <li>Coba kata kunci lain yang lebih umum (misal: "Beras", "Yatim", "Sedekah").</li>
-              <li>Coba kurangi kata kunci penelusuran.</li>
+              <li>Pastikan semua kata dieja dengan benar sesuai penulisan program amil.</li>
+              <li>Coba kata kunci lain yang lebih umum (misal: "Sumur", "Santri", "Sedekah", "Zakat").</li>
+              <li>Coba kurangi jumlah kata kunci penelusuran.</li>
             </ul>
           </div>
         )}
