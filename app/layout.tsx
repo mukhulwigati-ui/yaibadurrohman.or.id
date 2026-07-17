@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 🚀 MASTER SEO METADATA (Google, Bing, & Social Media Ready 2026)
-// Dioptimalkan penuh untuk LAZIS Khoiro Ummah - Lazisku.com
+// 🚀 MASTER SEO METADATA TAK TERTANDINGI (Google, Bing, & Social Media Ready)
+// Dioptimalkan penuh untuk LAZIS Khoiro Ummah - lazisku.com
 export const metadata: Metadata = {
   title: {
     default: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
@@ -33,7 +33,9 @@ export const metadata: Metadata = {
     "sedekah subuh",
     "donasi yatim dhuafa",
     "lembaga amil zakat amanah",
-    "donasi qris instant"
+    "donasi qris instant",
+    "lazis banyumas",
+    "khoiro ummah bina umat"
   ],
   authors: [{ name: "LAZIS Khoiro Ummah", url: "https://lazisku.com" }],
   creator: "LAZIS Khoiro Ummah",
@@ -42,31 +44,42 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  // Open Graph / Facebook / WhatsApp / Telegram Card Preview
+  
+  // ===================================================================
+  // 📱 OPEN GRAPH / FACEBOOK / WHATSAPP / TELEGRAM PREVIEW
+  // ===================================================================
   openGraph: {
     title: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
-    description: "Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq produktif, dan zakat mal/fitrah secara transparan dan otomatis via QRIS & VA bersama lazisku.com.",
+    description: "Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq produktif, dan zakat mal/fitrah secara transparan dan otomatis via QRIS & Virtual Account bersama lazisku.com.",
     url: "https://lazisku.com",
     siteName: "LAZIS Khoiro Ummah",
     locale: "id_ID",
     type: "website",
     images: [
       {
-        url: "/logo-lazisku.png", // Mengarah langsung ke file logo LAZISKU utama Anda
+        // 🚀 FIXED: Mengarahkan preview link WhatsApp langsung ke gambar banner-utama Anda
+        url: "/images/banner-utama.png",
         width: 1200,
         height: 630,
         alt: "LAZIS Khoiro Ummah - Mengalirkan Keberkahan Melalui Sedekah dan Infaq",
       },
     ],
   },
-  // Twitter / X Card Preview
+
+  // ===================================================================
+  // 🐦 TWITTER / X CARD PREVIEW
+  // ===================================================================
   twitter: {
     card: "summary_large_image",
     title: "LAZIS Khoiro Ummah | Sedekah & Infaq Online Mudah",
     description: "Platform resmi galang donasi, sedekah, infaq, dan zakat amanah bersama LAZIS Khoiro Ummah.",
-    images: ["/logo-lazisku.png"],
+    // 🚀 FIXED: Menyelaraskan preview Twitter dengan banner utama
+    images: ["/images/banner-utama.png"],
   },
-  // Kebijakan Ketat Bot Google Indexing (Memaksa Google Merayapi Semua Halaman Secara Maksimal)
+
+  // ===================================================================
+  // 🤖 ROBOTS INDEXING KETAT (Memaksa Crawling Google Maksimal)
+  // ===================================================================
   robots: {
     index: true,
     follow: true,
@@ -77,6 +90,13 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+
+  // ===================================================================
+  // 🔐 VERIFIKASI MESIN PENCARI (Opsional - Ganti value jika sudah ada token aslinya)
+  // ===================================================================
+  verification: {
+    google: "google-site-verification-token-anda", // Membantu mempercepat indexing Google Search Console
   },
 };
 
@@ -92,7 +112,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-gray-50 flex flex-col text-gray-800" suppressHydrationWarning>
         
-        {/* 🚀 JURUS SAKTI: Memindahkan semua logika 'use client' ke Wrapper Komponen */}
+        {/* 🚀 LAYOUT CLIENT WRAPPER */}
         <LayoutClientWrapper>
           {children}
         </LayoutClientWrapper>
