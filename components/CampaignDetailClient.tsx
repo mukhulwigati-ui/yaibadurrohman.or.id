@@ -14,6 +14,7 @@ interface FormProps {
   handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleDonate: () => Promise<void>;
   submitting: boolean;
+  slug: string; // 🚀 BARU: Diperlukan untuk mendeteksi halaman zakat
 }
 
 const DonationFormFields = ({
@@ -27,6 +28,7 @@ const DonationFormFields = ({
   handleAmountChange,
   handleDonate,
   submitting,
+  slug,
 }: FormProps) => (
   <div className="space-y-4 text-left">
     <div>
@@ -69,7 +71,20 @@ const DonationFormFields = ({
     </div>
 
     <div>
-      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Infak (Rp)</label>
+      <div className="flex justify-between items-center mb-1.5">
+        <label className="text-[11px] font-bold text-gray-500 block">Nominal Infak / Zakat (Rp)</label>
+        
+        {/* 🚀 JURUS SAKTI UX: Jika masuk lewat link langsung, munculkan link kalkulator otomatis */}
+        {slug === 'zakat-maal-dan-penghasilan' && (
+          <a 
+            href="/kalkulator" 
+            className="text-[10px] text-emerald-600 hover:text-emerald-700 font-black uppercase tracking-wider flex items-center gap-0.5 animate-pulse"
+          >
+            🧮 Hitung Zakat Anda
+          </a>
+        )}
+      </div>
+      
       <div className="relative flex items-center">
         <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
         <input
@@ -126,9 +141,6 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
       });
   }, [slug]);
 
-  // ===================================================================
-  // 🚀 BARU: DETEKSI PARAMETER NOMINAL DARI KALKULATOR ZAKAT
-  // ===================================================================
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -207,6 +219,7 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
     handleAmountChange,
     handleDonate,
     submitting,
+    slug, // Oper parameter slug ke dalam form fields
   };
 
   return (
