@@ -57,8 +57,8 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        // 🚀 FIXED: Diubah menggunakan URL Absolut & ditambah properti type
-        url: "https://lazisku.com/images/banner-utama.png",
+        // 🚀 FIXED: Menyelaraskan nama file ke banner.png agar sinkron dan valid
+        url: "https://lazisku.com/images/banner.png",
         width: 1200,
         height: 630,
         type: "image/png",
@@ -74,8 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LAZIS Khoiro Ummah | Sedekah & Infaq Online Mudah",
     description: "Platform resmi galang donasi, sedekah, infaq, dan zakat amanah bersama LAZIS Khoiro Ummah.",
-    // 🚀 FIXED: Diubah menggunakan URL Absolut
-    images: ["https://lazisku.com/images/banner-utama.png"],
+    images: ["https://lazisku.com/images/banner.png"],
   },
 
   // ===================================================================
