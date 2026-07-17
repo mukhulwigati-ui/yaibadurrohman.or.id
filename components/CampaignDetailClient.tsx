@@ -1,4 +1,3 @@
-// components/CampaignDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -126,6 +125,24 @@ export default function CampaignDetailClient({ slug }: { slug: string }) {
         setLoading(false);
       });
   }, [slug]);
+
+  // ===================================================================
+  // 🚀 BARU: DETEKSI PARAMETER NOMINAL DARI KALKULATOR ZAKAT
+  // ===================================================================
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const autoAmount = searchParams.get('amount');
+      
+      if (autoAmount) {
+        const rawValue = autoAmount.replace(/[^0-9]/g, '');
+        if (rawValue) {
+          const formatted = Number(rawValue).toLocaleString('id-ID');
+          setAmount(formatted);
+        }
+      }
+    }
+  }, []);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, '');
