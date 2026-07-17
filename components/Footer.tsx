@@ -57,7 +57,7 @@ export default function Footer() {
             <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4">Kategori</h3>
             <ul className="space-y-2 text-xs font-semibold text-gray-400">
               <li>
-                <Link href="/program?category=kemanusiaan" className="hover:text-emerald-600 transition-colors">Kemanusiaan</Link>
+                <Link href="/kalkulator" className="hover:text-emerald-600 transition-colors">Kalkulator Zakat</Link>
               </li>
               <li>
                 <Link href="/program?category=pendidikan" className="hover:text-emerald-600 transition-colors">Pendidikan</Link>

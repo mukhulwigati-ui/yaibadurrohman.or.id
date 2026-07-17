@@ -32,6 +32,10 @@ export default defineType({
           { title: 'Pendidikan', value: 'PENDIDIKAN' },
           { title: 'Kesehatan', value: 'KESEHATAN' },
           { title: 'Infrastruktur', value: 'INFRASTRUKTUR' },
+          // 🚀 BARU: Menambahkan opsi fungsionalitas ZISWAF
+          { title: 'Zakat', value: 'ZAKAT' },
+          { title: 'Infak / Sedekah', value: 'INFAK' },
+          { title: 'Wakaf', value: 'WAKAF' },
         ],
       },
       initialValue: 'KEMANUSIAAN',
