@@ -1,25 +1,17 @@
 // app/api/news/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from 'next-sanity';
+// 🚀 OPTIMASI UTAMA: Menggunakan clientPublik yang diarahkan ke Edge CDN Gratis Sanity
+import { clientPublik as client } from '@/lib/sanity';
 
-// 🚀 JURUS SAKTI ANTI-CACHE NEXT.JS APP ROUTER
-// Memaksa API Route ini agar selalu bersifat dinamis & melarang keras serverless menyimpan cache statis
+// 🚀 PROTEKSI 1: Hapus revalidate = 0, ganti dengan durasi simpan 60 detik di sisi server Next.js
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2026-06-20',
-  useCdn: false, // Wajib false agar artikel baru langsung muncul real-time tanpa delay CDN
-});
+export const revalidate = 60;
 
 function timeAgo(dateString: string) {
   const now = new Date();
   const past = new Date(dateString);
   const diffMs = now.getTime() - past.getTime();
   
-  // Amankan jika ada ketidaksesuaian waktu server/lokal yang menghasilkan angka minus
   const diffMins = Math.max(0, Math.floor(diffMs / 60000));
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
@@ -31,7 +23,7 @@ function timeAgo(dateString: string) {
 
 export async function GET() {
   try {
-    // 🚀 FIXED QUERY GROQ: Menarik category murni sebagai string text cadangan jika referensi kosong
+    // 🚀 QUERY GROQ TETAP DIJAGA KUALITASNYA
     const query = `*[_type == "news"] | order(publishedAt desc)[0..11] {
       "id": _id,
       "slug": slug.current,
@@ -41,11 +33,8 @@ export async function GET() {
       publishedAt
     }`;
 
-    // 🚀 FIXED CACHING AT FETCH LEVEL: Menambahkan header anti-cache pada penarikan data Sanity Cloud
-    const sanityNews = await sanityClient.fetch(query, {}, {
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
+    // 🚀 PROTEKSI 2: Hapus properti no-store, percayakan penanganan cache pada Next.js + CDN
+    const sanityNews = await client.fetch(query);
 
     const formattedNews = sanityNews.map((item: any) => ({
       id: item.id,
@@ -57,16 +46,17 @@ export async function GET() {
       timeAgo: timeAgo(item.publishedAt),
     }));
 
-    // 🚀 FIXED HEADERS: Menyuntikkan instruksi anti-cache pada response JSON untuk browser & hosting serverless
-    return new NextResponse(JSON.stringify({ success: true, data: formattedNews }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
-    });
+    // 🚀 PROTEKSI 3: Gunakan Cache-Control tingkat server Next.js selama 1 menit (Bebas Bebas Kuota)
+    return NextResponse.json(
+      { success: true, data: formattedNews },
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+        },
+      }
+    );
 
   } catch (error: any) {
     console.error('🔥 Fetch News API Error:', error);

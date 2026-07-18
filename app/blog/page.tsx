@@ -8,13 +8,23 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/news')
+    // 🚀 FIXED: Menambahkan header cache level browser/client agar serasi dengan proteksi API Backend
+    fetch('/api/news', {
+      headers: {
+        'Accept': 'application/json',
+      },
+      // Mengizinkan browser memanfaatkan cache Next.js yang sudah tersimpan di server
+      cache: 'default' 
+    })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setNewsList(json.data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('🔥 Client Fetch News Error:', err);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) return <div className="text-center py-20 text-gray-400 font-medium text-sm">Memuat kabar terbaru...</div>;
@@ -60,7 +70,7 @@ export default function BlogPage() {
                 </h1>
               </div>
               <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed line-clamp-3">
-                Baca selengkapnya mengenai update aktivitas penyaluran amanah dan kabar perkembangan yayasan Wasilah Hidayah Nusantara di lapangan...
+                Baca selengkapnya mengenai update aktivitas penyaluran amanah dan kabar perkembangan yayasan di lapangan...
               </p>
               <div className="flex items-center space-x-2 text-[11px] font-semibold text-gray-400 pt-1">
                 <span className="text-gray-600">Redaksi Wasilah</span>

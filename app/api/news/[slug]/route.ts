@@ -1,38 +1,23 @@
 // app/api/news/[slug]/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from 'next-sanity';
+// 🚀 OPTIMASI UTAMA: Menggunakan clientPublik dari utilitas lib yang mengaktifkan Edge CDN gratis
+import { clientPublik as client } from '@/lib/sanity';
 
-// 🚀 JURUS SAKTI ANTI-CACHE NEXT.JS APP ROUTER
-// Memaksa API Route ini agar selalu bersifat dinamis & melarang keras server menyimpan cache statis
+// 🚀 PROTEKSI 1: Ubah jendela revalidate menjadi 60 detik agar Next.js menahan render statis di sisi server
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'jmgc1ejr',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2026-06-20',
-  useCdn: false, // Wajib false agar data berita & update nominal donasi sidebar langsung real-time
-});
+export const revalidate = 60;
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ slug: string }> } // Valid untuk Next.js 15+
+  context: { params: Promise<{ slug: string }> } // Struktur Next.js 15+
 ) {
   try {
-    // 🚀 FIXED: Menunggu Promise params diselesaikan dengan aman sesuai standar Next.js terbaru
+    // Menunggu Promise params diselesaikan dengan aman sesuai standar Next.js terbaru
     const { slug } = await context.params;
     
-    console.log("=== MEMPROSES API UNTUK SLUG ===", slug);
+    console.log("=== MEMPROSES API DETAIL NEWS UNTUK SLUG ===", slug);
 
-    if (!process.env.NEXT_PUBLIC_SANITY_PROJECT_ID) {
-      return NextResponse.json({ 
-        success: true, 
-        buildTime: true, 
-        data: { article: null, allNews: [], sidebarCampaigns: [] } 
-      });
-    }
-
-    // 🚀 FIXED GROQ DEEP DEREFERENCE: Mengamankan content block agar kebal dari eror objek {_ref, _type}
+    // 🚀 QUERY GROQ LENGKAP DIPERTAHANKAN STRUKTUR DEREFERENCE-NYA
     const query = `{
       "article": *[_type == "news" && lower(slug.current) == lower($slug)][0] {
         "id": _id,
@@ -43,7 +28,6 @@ export async function GET(
         "alt": image.alt,
         publishedAt,
         category,
-        // 🎯 Membedah block content dan memaksa aset gambar internal untuk ter-dereference ke url
         content[] {
           ...,
           asset-> {
@@ -58,7 +42,7 @@ export async function GET(
           }
         }
       },
-      "allNews": *[_type == "news"] | order(publishedAt desc) {
+      "allNews": *[_type == "news"] | order(publishedAt desc)[0..5] {
         "id": _id,
         title,
         "slug": slug.current,
@@ -75,15 +59,12 @@ export async function GET(
       }
     }`;
 
-    // 🚀 FIXED CACHING AT FETCH LEVEL: Menambahkan header benci cache pada penarikan data Sanity Client
-    const data = await sanityClient.fetch(query, { slug }, {
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
+    // 🚀 PROTEKSI 2: Eksekusi fetch murni memanfaatkan CDN gratis tanpa properti no-store perusak kuota
+    const data = await client.fetch(query, { slug });
 
     if (!data.article) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: `Artikel dengan slug '${slug}' tidak ditemukan di Sanity.` }),
+      return NextResponse.json(
+        { success: false, error: `Artikel dengan slug '${slug}' tidak ditemukan di Sanity.` },
         { 
           status: 404,
           headers: { 'Content-Type': 'application/json' }
@@ -91,16 +72,17 @@ export async function GET(
       );
     }
 
-    // 🚀 FIXED HEADERS: Menyuntikkan instruksi anti-cache pada response JSON untuk browser & hosting CDN
-    return new NextResponse(JSON.stringify({ success: true, data }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
-    });
+    // 🚀 PROTEKSI 3: Terapkan Cache-Control berbasis stale-while-revalidate tingkat tinggi
+    return NextResponse.json(
+      { success: true, data },
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+        },
+      }
+    );
 
   } catch (error: any) {
     console.error('🔥 API Detail News Error:', error);

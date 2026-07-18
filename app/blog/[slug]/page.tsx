@@ -6,18 +6,26 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+// 🚀 PROTEKSI 1: Mengunci batas revalidasi halaman detail artikel selama 60 detik di level server Next.js
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
+// ===================================================================
+// 🚀 DYNAMIC METADATA: Menembak Open Graph & Gambar Unik Artikel ke Medsos
+// ===================================================================
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-
-  // 1. Definisikan fallback gambar utama yang PASTI VALID & RINGAN
-  const fallbackImage = 'https://lazisku.com/images/banner-utama.png';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
+  const fallbackImage = `${siteUrl}/images/banner-utama.png`;
+  
   let imageUrl = fallbackImage;
   let articleTitle = 'Kabar Berita | LAZIS Khoiro Ummah';
-  let articleExcerpt = ''; // Mulai dengan string kosong agar logika dinamis berjalan
+  let articleExcerpt = ''; 
 
   try {
-    const res = await fetch(`https://lazisku.com/api/news/${slug}`, {
-      cache: 'no-store'
+    // 🚀 PROTEKSI 2: Menghapus cache no-store dan menyematkan revalidate 60 detik agar berbagi cache dengan API Route
+    const res = await fetch(`${siteUrl}/api/news/${slug}`, {
+      next: { revalidate: 60 },
     });
     const json = await res.json();
     const article = json?.data?.article;
@@ -31,11 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       if (article.excerpt && typeof article.excerpt === 'string') {
         articleExcerpt = article.excerpt;
       } else if (article.content) {
-        // Kasus A: Jika content dikembalikan sebagai text/string biasa
         if (typeof article.content === 'string') {
           articleExcerpt = article.content.slice(0, 150) + '...';
         } 
-        // Kasus B: Jika content dikembalikan sebagai array block PortableText dari Sanity
         else if (Array.isArray(article.content)) {
           const plainText = article.content
             .filter((block: any) => block._type === 'block' && block.children)
@@ -46,26 +52,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         }
       }
 
-      // Fallback cadangan yang aman jika artikel benar-benar tidak memiliki tulisan/konten
       if (!articleExcerpt) {
         articleExcerpt = `Baca kabar berita lengkap mengenai "${articleTitle}" secara resmi di platform LAZIS Khoiro Ummah.`;
       }
 
-      // 🚀 DETEKSI AKURAT GAMBAR: Antisipasi perbedaan nama properti dari API
       const rawImage = article.imageUrl || article.image;
 
       if (rawImage && typeof rawImage === 'string') {
-        // Jika dari API sudah berupa link absolut CDN Sanity (dimulai http)
         if (rawImage.startsWith('http')) {
           imageUrl = rawImage;
         } else {
-          // Jika jalurnya masih relatif, gabungkan dengan domain utama
-          imageUrl = `https://lazisku.com${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
+          imageUrl = `${siteUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
         }
       }
     }
   } catch (error) {
-    console.error('Metadata patch error:', error);
+    console.error('🔥 Metadata patch error:', error);
     articleExcerpt = 'Salurkan sedekah dan zakat Anda secara amanah melalui LAZIS Khoiro Ummah.';
   }
 
@@ -78,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: articleTitle,
       description: articleExcerpt,
-      url: `https://lazisku.com/blog/${slug}`,
+      url: `${siteUrl}/blog/${slug}`,
       siteName: 'LAZIS Khoiro Ummah',
       locale: 'id_ID',
       type: 'article',
@@ -101,6 +103,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// ===================================================================
+// 🖥️ SERVER COMPONENT ENTRY
+// ===================================================================
 export default async function BlogPage({ params }: Props) {
   const { slug } = await params;
   return <BlogDetailClient slug={slug} />;
