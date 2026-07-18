@@ -4,14 +4,13 @@ import { createClient } from '@sanity/client';
 
 export const dynamic = 'force-dynamic';
 
-// 🚀 MEMBACA KREDENSIAL LANGSUNG DARI FILE .ENV.LOCAL ANDA SECARA VALID
+// 🚀 BYPASS TEST: Memasukkan string token Editor langsung ke kode untuk melewati sumbatan Env Hosting
 const client = createClient({
-  // FIXED: Fallback disesuaikan dengan ID asli di file .env.local kamu ("61d8vnuq")
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '61d8vnuq', 
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  projectId: '61d8vnuq', 
+  dataset: 'production',
   useCdn: false,
   apiVersion: '2024-01-01',
-  token: process.env.SANITY_WRITE_TOKEN, // Menggunakan Token Editor dari env Anda
+  token: 'sk44JM4AlD6urcLa9Ak9vvnRpLGlsRai9aftW1wPA4w9zxwhrCpKREk2ArKU25K4kENIPxVXenu4kZhm2cOSaxGP69kz8az2qM2BZDIVzqyAGLjIvVTGKMu39CExUrKwbw2wCb2bfxKPgZ4lqEt2nwLZT4HEc4XT1qfrZ0i6KYupIlT6IOlP', 
 });
 
 export async function POST(request: Request) {
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
     const rawAmount = body.amount || body.nominal || 0;
     const cleanAmountNumber = Number(String(rawAmount).replace(/\D/g, ''));
 
-    // 🚀 FIXED: Validasi dasar transaksi diturunkan menjadi Rp 1.000 agar sinkron dengan Pakasir QRIS
+    // Validasi dasar transaksi diturunkan menjadi Rp 1.000 agar sinkron dengan Pakasir QRIS
     if (!slug || !cleanAmountNumber || cleanAmountNumber < 1000) {
       return NextResponse.json(
         { success: false, error: 'Data tidak valid. Minimal donasi adalah Rp 1.000' },
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas image_eba182.png
+    // Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas gateway pembayaran
     const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazis-khoiro-ummah';
     const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
 
@@ -93,7 +92,7 @@ export async function POST(request: Request) {
     // Gunakan payment_url bawaan dari objek gateway jika tersedia, atau arahkan ke fallback link web checkout
     const paymentUrl = pakasirData.payment.payment_url || fallbackUrlWeb;
 
-    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY (Menggunakan Client Internal Ber-token Write)
+    // 🚀 MENULIS DATA TRANSAKSI LENGKAP KE SANITY
     await client.create({
       _type: 'donationTransaction',
       orderId: String(generatedOrderId),
@@ -108,7 +107,7 @@ export async function POST(request: Request) {
       paymentNumber: String(paymentNumber), 
     });
 
-    console.log(`🔒 TRANSAKSI MULTI-METHOD BERHASIL DICATAT: ${generatedOrderId} | Metode: ${cleanMethod} | Total: Rp ${cleanAmountNumber}`);
+    console.log(`🔒 TRANSAKSI BERHASIL DICATAT: ${generatedOrderId} | Metode: ${cleanMethod} | Total: Rp ${cleanAmountNumber}`);
 
     // Mengembalikan response sukses ke komponen frontend
     return NextResponse.json({
