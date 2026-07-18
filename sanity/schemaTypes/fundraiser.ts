@@ -38,5 +38,14 @@ export default defineType({
       },
       initialValue: 'pending',
     }),
+    // 🚀 FIELD BARU: PENCATATAN PEMBAYARAN FEE OLEH ADMIN YAYASAN
+    defineField({
+      name: 'feePaid',
+      title: 'Fee Yang Sudah Dibayarkan (Rp)',
+      type: 'number',
+      description: 'Input nominal akumulasi fee yang telah ditransfer oleh yayasan kepada fundraiser ini',
+      initialValue: 0,
+      validation: (Rule) => Rule.min(0).integer().error('Nominal harus berupa angka bulat positif'),
+    }),
   ],
 });

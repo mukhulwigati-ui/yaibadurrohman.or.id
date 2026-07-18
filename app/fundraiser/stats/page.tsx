@@ -79,17 +79,42 @@ export default function FundraiserStatsPage() {
                   {stats.profile.status === 'approved' ? 'Aktif Verifikasi' : 'Pending Approval'}
                 </span>
               </div>
+              
               <div className="border-t border-gray-200/60 my-2 pt-2 flex justify-between items-baseline">
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Total Dana Dihimpun</span>
                 <span className="text-lg font-black text-emerald-600">Rp {stats.totalEarnings.toLocaleString('id-ID')}</span>
               </div>
+
+              {/* ===================================================================
+                  🚀 RINCIAN ALOKASI & PENCATATAN UJRAH/FEE FUNDRAISER 10%
+                  =================================================================== */}
+              <div className="border-t border-dashed border-gray-200 pt-2 space-y-1.5">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Total Ujrah Hak Anda (10%)</span>
+                  <span className="text-xs font-bold text-gray-600">Rp {Math.round(stats.totalEarnings * 0.1).toLocaleString('id-ID')}</span>
+                </div>
+                
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold text-amber-600 uppercase">Fee Sudah Dibayarkan Yayasan</span>
+                  {/* Membaca properti feePaid dari data profile Sanity, jika kosong default ke 0 */}
+                  <span className="text-xs font-bold text-amber-700">-Rp {(stats.profile.feePaid || 0).toLocaleString('id-ID')}</span>
+                </div>
+
+                <div className="flex justify-between items-baseline border-b border-gray-200/60 pb-2 mb-2">
+                  <span className="text-[10px] font-black text-purple-600 uppercase">Sisa Saldo Fee Tersedia</span>
+                  <span className="text-sm font-black text-purple-700">
+                    Rp {Math.max(0, Math.round(stats.totalEarnings * 0.1) - (stats.profile.feePaid || 0)).toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center text-[10px] text-gray-400 font-medium">
                 <span>Jumlah Donatur</span>
                 <span>{stats.donationCount} Transaksi Sukses</span>
               </div>
             </div>
 
-            {/* 🚀 TERPASANG: Blok Kotak Tautan Afiliasi Otomatis (Sudut Siku) */}
+            {/* Blok Kotak Tautan Afiliasi Otomatis */}
             <div className="mt-4 pt-2 text-left space-y-2">
               <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">🔗 Tautan Afiliasi Anda</label>
               <div className="flex rounded-none overflow-hidden border border-gray-300">
