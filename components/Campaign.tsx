@@ -1,25 +1,20 @@
-// components/Campaign.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-// 🚀 FIXED TYPESCRIPT INTERFACE: Menghilangkan eror build IntrinsicAttributes
 interface CampaignProps {
   initialData?: any[];
 }
 
 export default function Campaign({ initialData = [] }: CampaignProps) {
-  // Gunakan data dari server jika tersedia, jika tidak gunakan array kosong terlebih dahulu
   const [programs, setPrograms] = useState<any[]>(initialData.length > 0 ? initialData : []);
   const [loading, setLoading] = useState(initialData.length === 0);
   
-  // 🚀 STATE UNTUK FILTER & PENCARIAN
   const [selectedCategory, setSelectedCategory] = useState('SEMUA');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // 🚀 FIXED HYDRATION LOGIC: Hanya fetch dari client-side jika initialData tidak dikirim dari Server Component
     if (initialData.length > 0) {
       setPrograms(initialData);
       setLoading(false);
@@ -44,74 +39,67 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
       });
   }, [initialData]);
 
+  // 🚀 DINAMIS: Mengekstrak semua kategori yang unik secara otomatis dari data Sanity
+  const avaibleCategories = React.useMemo(() => {
+    const categories = new Set<string>();
+    programs.forEach((p) => {
+      if (p.category) {
+        // Normalisasi teks menjadi UPPERCASE agar pencocokan filter tidak meleset
+        categories.add(p.category.trim().toUpperCase());
+      }
+    });
+    return ['SEMUA', ...Array.from(categories)];
+  }, [programs]);
+
   if (loading) {
-    return <div className="text-center py-16 text-gray-500 font-medium text-sm">Memuat program kebaikan...</div>;
+    return <div className="text-center py-16 text-gray-500 font-medium text-xs tracking-wider">MEMUAT PROGRAM KEBAIKAN...</div>;
   }
 
-  // 🚀 PROSES FILTERING DATA SECARA REAL-TIME
+  // PROSES FILTERING DATA
   const filteredPrograms = programs.filter((program) => {
-    // Match Kategori (Kebal huruf besar-kecil)
     const matchesCategory = 
       selectedCategory === 'SEMUA' || 
       program.category?.toUpperCase() === selectedCategory;
     
-    // Match Teks Pencarian (Judul Campaign)
     const matchesSearch = program.title?.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       
       {/* ===================================================================
-          BARIS FILTER KATEGORI & SEARCH BAR (POLOS TANPA BUNGKUS KOTAK BESAR)
+          BARIS FILTER KATEGORI DINAMIS & SEARCH BAR (DESAIN BERSIH SLIM)
           =================================================================== */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full border-b border-gray-100 pb-4">
         
-        {/* Navigasi Filter Kategori (Kiri) */}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => setSelectedCategory('SEMUA')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm border ${
-              selectedCategory === 'SEMUA'
-                ? 'bg-yellow-400 text-gray-900 border-yellow-400 font-black shadow-yellow-100'
-                : 'bg-white text-gray-500 hover:text-emerald-600 border-gray-200'
-            }`}
-          >
-            Semua
-          </button>
-          <button
-            onClick={() => setSelectedCategory('KEMANUSIAAN')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm border ${
-              selectedCategory === 'KEMANUSIAAN'
-                ? 'bg-yellow-400 text-gray-900 border-yellow-400 font-black shadow-yellow-100'
-                : 'bg-white text-gray-500 hover:text-emerald-600 border-gray-200'
-            }`}
-          >
-            Kemanusiaan
-          </button>
-          <button
-            onClick={() => setSelectedCategory('PENDIDIKAN')}
-            className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm border ${
-              selectedCategory === 'PENDIDIKAN'
-                ? 'bg-yellow-400 text-gray-900 border-yellow-400 font-black shadow-yellow-100'
-                : 'bg-white text-gray-500 hover:text-emerald-600 border-gray-200'
-            }`}
-          >
-            Pendidikan
-          </button>
+        {/* Navigasi Filter Kategori Dinamis (Render Otomatis Dari Sanity) */}
+        <div className="flex flex-wrap items-center gap-2">
+          {avaibleCategories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2.5 rounded-none text-[11px] font-bold uppercase tracking-wider transition-all border ${
+                selectedCategory === category
+                  ? 'bg-emerald-600 text-white border-emerald-600 font-black'
+                  : 'bg-white text-gray-400 hover:text-emerald-600 border-gray-200'
+              }`}
+            >
+              {category === 'SEMUA' ? 'Semua' : category}
+            </button>
+          ))}
         </div>
 
-        {/* Input Box Pencarian (Kanan) */}
+        {/* Input Box Pencarian Minimalis */}
         <div className="relative max-w-xs w-full">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">
             🔍
           </span>
           <input
             type="text"
             placeholder="Cari galang dana..."
-            className="w-full bg-white border border-gray-200 text-xs font-semibold text-gray-700 pl-10 pr-4 py-3.5 rounded-xl placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 shadow-sm transition-all"
+            className="w-full bg-white border border-gray-200 text-xs font-bold text-gray-700 pl-9 pr-4 py-2.5 rounded-none placeholder-gray-400 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -120,50 +108,50 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
       </div>
 
       {/* ===================================================================
-          GRID LAYOUT CARD CAMPAIGN GALANG DANA
+          GRID LAYOUT CARD CAMPAIGN GALANG DANA (SUDUT SIKU MODERN)
           =================================================================== */}
       {filteredPrograms.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 text-gray-400 text-xs font-medium">
-          Tidak ditemukan program galang dana yang cocok gaes.
+        <div className="text-center py-16 bg-white rounded-none border border-gray-100 text-gray-400 text-xs font-bold uppercase tracking-wider">
+          Tidak ditemukan program galang dana yang cocok.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredPrograms.map((program) => (
-            <div key={program.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div key={program.id || program._id} className="bg-white rounded-none p-4 shadow-xs border border-gray-100 flex flex-col justify-between group hover:shadow-md transition-all duration-300">
               <div>
-                {/* Gambar Campaign Dinamis dari Sanity CDN */}
-                <div className="relative h-44 w-full rounded-xl overflow-hidden bg-gray-100">
-                  <img src={program.image} alt={program.title} className="object-cover w-full h-full group-hover:scale-105 transition duration-500" />
-                  <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase">
+                {/* Gambar Campaign Dinamis */}
+                <div className="relative h-40 w-full rounded-none overflow-hidden bg-gray-50 border-b border-gray-100">
+                  <img src={program.image} alt={program.title} className="object-cover w-full h-full transition duration-500" />
+                  <span className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[9px] font-black px-2 py-0.5 rounded-none uppercase tracking-wide">
                     {program.category}
                   </span>
                 </div>
 
                 {/* Judul Campaign */}
-                <h2 className="font-bold text-gray-800 mt-4 text-base uppercase line-clamp-2 min-h-[3rem]">
+                <h2 className="font-black text-gray-800 mt-3 text-sm uppercase leading-snug line-clamp-2 min-h-[2.5rem] tracking-tight">
                   {program.title}
                 </h2>
                 
-                {/* Status Dana Terkumpul Dinamis */}
-                <div className="flex justify-between text-[11px] text-gray-400 font-semibold mt-4">
+                {/* Status Dana Terkumpul */}
+                <div className="flex justify-between text-[10px] text-gray-400 font-bold mt-4 border-t border-gray-50 pt-3">
                   <div>
-                    <p>TERKUMPUL</p>
-                    <p className="font-bold text-emerald-600 text-sm mt-0.5">{program.collected}</p>
+                    <p className="uppercase tracking-wider">Terkumpul</p>
+                    <p className="font-black text-emerald-600 text-xs mt-0.5">{program.collected}</p>
                   </div>
                   <div className="text-right">
-                    <p>TARGET</p>
-                    <p className="font-bold text-gray-700 text-sm mt-0.5">{program.target}</p>
+                    <p className="uppercase tracking-wider">Target</p>
+                    <p className="font-black text-gray-700 text-xs mt-0.5">{program.target}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Tombol Aksi Menuju Halaman Detail Campaign */}
-              <div className="mt-5 pt-4 border-t border-gray-50">
+              {/* Tombol Aksi Menuju Detail */}
+              <div className="mt-4 pt-3 border-t border-gray-50">
                 <Link
                   href={`/campaign/${program.slug}`}
-                  className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition text-xs uppercase tracking-widest shadow-sm shadow-emerald-100"
+                  className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-none transition text-[10px] uppercase tracking-widest shadow-xs"
                 >
-                  Infak Sekarang
+                  Infak Sekarang ➔
                 </Link>
               </div>
             </div>
