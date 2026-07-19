@@ -14,14 +14,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 🚀 MASTER SEO METADATA TAK TERTANDINGI (Google, Bing, & Social Media Ready)
+// 🚀 MASTER SEO & PWA METADATA READY
 // Dioptimalkan penuh untuk LAZIS Khoiro Ummah - lazisku.com
 export const metadata: Metadata = {
   title: {
     default: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
     template: "%s | LAZIS Khoiro Ummah"
   },
-  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan and amanah melalui LAZIS Khoiro Ummah (lazisku.com). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemanusiaan.",
+  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan and amanah melalui LAZIS Khoiro Ummah (lazisku.com). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemানুsiaan.",
+  
+  // 🚀 BARU: Mendaftarkan file manifest.json statis dari folder public agar dibaca browser
+  manifest: "/manifest.json",
+
+  // 🚀 BARU: Dukungan PWA Maksimal untuk perangkat Apple/iOS
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LAZISku",
+  },
+
   keywords: [
     "lazis khoiro ummah",
     "lazisku",
@@ -57,7 +68,6 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        // 🚀 FIXED: Menyelaraskan nama file ke banner.png agar sinkron dan valid
         url: "https://lazisku.com/images/banner.png",
         width: 1200,
         height: 630,
