@@ -100,6 +100,7 @@ export async function POST(request: Request) {
 
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
     const currentDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const currentFullTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
     // ===================================================================
     // 3. JALANKAN MUTASI SANITY & LOGIKA AFILIASI
@@ -109,16 +110,30 @@ export async function POST(request: Request) {
       await client.patch(pendingTransaction._id).set({ status: 'success' }).commit();
 
       // 🚀 CEK AFILIASI: Hitung Ujrah 10%
-      const refPhone = pendingTransaction.fundraiserPhone; // Pastikan field di Sanity bernama 'fundraiserPhone'
+      const refPhone = pendingTransaction.fundraiserPhone; // Sinkron dengan field pelacak fundraiserPhone
       if (refPhone) {
-        const fundraiser = await client.fetch(`*[_type == "fundraiser" && phone == $phone][0]`, { phone: String(refPhone).trim() });
+        // Cek variasi format nomor di DB relawan (lokal maupun internasional)
+        let formattedRefPhone = refPhone.replace(/[^0-9]/g, '');
+        let alternativeRefPhone = formattedRefPhone;
+        
+        if (formattedRefPhone.startsWith('0')) {
+          alternativeRefPhone = '62' + formattedRefPhone.slice(1);
+        } else if (formattedRefPhone.startsWith('62')) {
+          alternativeRefPhone = '0' + formattedRefPhone.slice(2);
+        }
+
+        const fundraiser = await client.fetch(
+          `*[_type == "fundraiser" && (phone == $phone || phone == $altPhone)][0]`, 
+          { phone: refPhone.trim(), altPhone: alternativeRefPhone }
+        );
+
         if (fundraiser) {
           const ujrah = donationAmount * 0.1;
           await client.patch(fundraiser._id)
             .setIfMissing({ totalDanaDihimpun: 0, sisaSaldoFee: 0, totalTransaksiSukses: 0 })
             .inc({ totalDanaDihimpun: donationAmount, sisaSaldoFee: ujrah, totalTransaksiSukses: 1 })
             .commit();
-          console.log(`✅ Ujrah ${ujrah} berhasil ditambahkan ke saldo ${fundraiser.name}`);
+          console.log(`✅ Ujrah Rp ${ujrah} berhasil ditambahkan ke saldo ${fundraiser.name}`);
         }
       }
     }
@@ -136,27 +151,55 @@ export async function POST(request: Request) {
       }])
       .commit();
 
-    // 📊 Google Sheets & Fonnte (tetap seperti semula...)
-    await appendToGoogleSheets({ date: currentDate, orderId: cleanOrderId, name: donorNameFromForm, phone: donorPhoneFromForm, amount: donationAmount, program: finalProgram.title });
+    // 📊 Catat Mutasi ke Google Sheets
+    await appendToGoogleSheets({ 
+      date: currentDate, 
+      orderId: cleanOrderId, 
+      name: donorNameFromForm, 
+      phone: donorPhoneFromForm, 
+      amount: donationAmount, 
+      program: finalProgram.title 
+    });
 
+    // ===================================================================
+    // 📲 NOTIFIKASI WHATSAPP PREMIUM VIA FONNTE
+    // ===================================================================
     if (donorPhoneFromForm) {
-      // ... (kode Fonnte kamu tetap di sini, saya persingkat untuk kejelasan)
       let formattedPhone = donorPhoneFromForm.replace(/[^0-9]/g, '');
       if (formattedPhone.startsWith('0')) formattedPhone = '62' + formattedPhone.slice(1);
       
-      const messageText = `Terima kasih Bapak/Ibu ${donorNameFromForm}, dana sebesar Rp ${donationAmount.toLocaleString()} telah kami terima. Jazakumullah khairan.`;
+      // 🚀 TEMPLATE KUITANSI PREMIUM WHATSAPP
+      const messageText = `*DONASI BERHASIL DITERIMA* 🎉
+  
+Jazakumullah khairan, Kak *${donorNameFromForm}*. Donasi Anda telah berhasil kami verifikasi dengan detail berikut:
+
+📝 *No. Invoice:* ${cleanOrderId}
+📌 *Program:* ${finalProgram.title}
+💰 *Nominal:* Rp ${donationAmount.toLocaleString('id-ID')}
+💳 *Metode:* ${paymentMethodUsed}
+⏰ *Tanggal:* ${currentDate} - ${currentFullTime} WIB
+
+Semoga sedekah yang ditunaikan menjadi penggugur dosa, pembuka pintu rezeki, dan membawa keberkahan yang berlipat ganda untuk Anda beserta keluarga. Aamiin Yaa Rabbal 'Aalamiin.
+
+----------------------------
+*LAZIS Khoiro Ummah*
+_Salurkan kepedulian Anda secara amanah & transparan_`;
+
       try {
         await fetch('https://api.fonnte.com/send', {
           method: 'POST',
           headers: { 'Authorization': process.env.FONNTE_TOKEN || '' },
           body: new URLSearchParams({ target: formattedPhone, message: messageText }),
         });
-      } catch (err) { console.error('Fonnte error:', err); }
+      } catch (err) { 
+        console.error('🔥 Fonnte error:', err); 
+      }
     }
 
     return NextResponse.json({ success: true, message: "Sukses diproses." });
 
   } catch (error: any) {
+    console.error('🔥 CRITICAL WEBHOOK ERROR:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

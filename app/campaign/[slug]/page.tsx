@@ -25,7 +25,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { slug } = await params;
   const { ref } = await searchParams; // 🚀 Ikut tangkap ref untuk canonical & OG URL biar tracking medsos valid
   
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
+  // 🚀 FIXED: Pastikan domain utama mendukung format WWW agar sinkron saat di-share di WhatsApp
+  let siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lazisku.com';
+  if (!siteUrl.includes('www.')) {
+    siteUrl = siteUrl.replace('https://', 'https://www.');
+  }
+  
   const fallbackImage = `${siteUrl}/images/banner-utama.png`;
   
   let campaignTitle = 'Program Donasi Amanah | LAZIS Khoiro Ummah';
