@@ -1,7 +1,9 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { createClient } from "@sanity/client";
 import LayoutClientWrapper from "@/components/LayoutClientWrapper";
+import LiveDonationNotification, { Donation } from "@/components/LiveDonationNotification";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,25 +16,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// 🚀 INITIALIZE SANITY CLIENT (Server-Side Direct Bypass)
+const serverClient = createClient({
+  projectId: "61d8vnuq",
+  dataset: "production",
+  useCdn: false, // Wajib false agar data donasi terbaru real-time langsung tertangkap
+  apiVersion: "2024-01-01",
+  token: "sk44JM4AlD6urcLa9Ak9vvnRpLGlsRai9aftW1wPA4w9zxwhrCpKREk2ArKU25K4kENIPxVXenu4kZhm2cOSaxGP69kz8az2qM2BZDIVzqyAGLjIvVTGKMu39CExUrKwbw2wCb2bfxKPgZ4lqEt2nwLZT4HEc4XT1qfrZ0i6KYupIlT6IOlP",
+});
+
 // 🚀 MASTER SEO & PWA METADATA READY
-// Dioptimalkan penuh untuk LAZIS Khoiro Ummah - lazisku.com
 export const metadata: Metadata = {
   title: {
     default: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
     template: "%s | LAZIS Khoiro Ummah"
   },
-  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan and amanah melalui LAZIS Khoiro Ummah (lazisku.com). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemানুsiaan.",
-  
-  // 🚀 BARU: Mendaftarkan file manifest.json statis dari folder public agar dibaca browser
+  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan and amanah melalui LAZIS Khoiro Ummah (lazisku.com). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemanusiaan.",
   manifest: "/manifest.json",
-
-  // 🚀 BARU: Dukungan PWA Maksimal untuk perangkat Apple/iOS
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "LAZISku",
   },
-
   keywords: [
     "lazis khoiro ummah",
     "lazisku",
@@ -55,10 +60,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  
-  // ===================================================================
-  // 📱 OPEN GRAPH / FACEBOOK / WHATSAPP / TELEGRAM PREVIEW
-  // ===================================================================
   openGraph: {
     title: "LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah",
     description: "Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq produktif, dan zakat mal/fitrah secara transparan dan otomatis via QRIS & Virtual Account bersama lazisku.com.",
@@ -76,20 +77,12 @@ export const metadata: Metadata = {
       },
     ],
   },
-
-  // ===================================================================
-  // 🐦 TWITTER / X CARD PREVIEW
-  // ===================================================================
   twitter: {
     card: "summary_large_image",
     title: "LAZIS Khoiro Ummah | Sedekah & Infaq Online Mudah",
     description: "Platform resmi galang donasi, sedekah, infaq, dan zakat amanah bersama LAZIS Khoiro Ummah.",
     images: ["https://lazisku.com/images/banner.png"],
   },
-
-  // ===================================================================
-  // 🤖 ROBOTS INDEXING KETAT (Memaksa Crawling Google Maksimal)
-  // ===================================================================
   robots: {
     index: true,
     follow: true,
@@ -101,20 +94,70 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-
-  // ===================================================================
-  // 🔐 VERIFIKASI MESIN PENCARI
-  // ===================================================================
   verification: {
     google: "google-site-verification-token-anda",
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
+  let dynamicDonations: Donation[] = [];
+
+  try {
+    // 🔥 FIX QUERY: coalesce digunakan untuk mencari field alternatif jika program->title null
+    const rawData = await serverClient.fetch(
+      `*[_type == "donationTransaction" && status == "success"] | order(_createdAt desc)[0...10] {
+        "id": _id,
+        "name": donorName,
+        "amount": amount,
+        "program": coalesce(program->title, campaign->title, programName),
+        _createdAt
+      }`
+    );
+
+    if (rawData && rawData.length > 0) {
+      dynamicDonations = rawData.map((item: any) => {
+        // Hitung selisih waktu dinamis
+        const diffMs = Math.abs(new Date().getTime() - new Date(item._createdAt).getTime());
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        
+        let timeLabel = "baru saja";
+        if (diffMins > 0 && diffMins < 60) {
+          timeLabel = `${diffMins} menit yang lalu`;
+        } else if (diffMins >= 60) {
+          timeLabel = `${Math.floor(diffMins / 60)} jam yang lalu`;
+        }
+
+        // 🔥 FIX VARIASI TEXT: Jika data program di database benar-benar kosong, ganti secara dinamis agar bervariasi
+        let finalProgram = item.program;
+        if (!finalProgram) {
+          const defaults = ["Sedekah Subuh", "Infak Ummat", "Program Yatim & Dhuafa", "Sedekah Umum"];
+          // Ambil acak berdasarkan timestamp id agar tetap konsisten per-item
+          const charCodeSum = item.id ? item.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
+          finalProgram = defaults[charCodeSum % defaults.length];
+        }
+
+        return {
+          id: item.id,
+          name: item.name || "Hamba Allah",
+          amount: new Intl.NumberFormat("id-ID", { 
+            style: "currency", 
+            currency: "IDR", 
+            minimumFractionDigits: 0 
+          }).format(item.amount),
+          program: finalProgram,
+          timeLabel: timeLabel
+        };
+      });
+    }
+  } catch (err) {
+    console.error("🔥 Gagal mengambil data donasi asli di layout:", err);
+  }
+
   return (
     <html
       lang="id"
@@ -122,6 +165,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-gray-50 flex flex-col text-gray-800" suppressHydrationWarning>
         
+        {/* 🚀 POP-UP NOTIFICATION: Mengoper data asli yang diambil langsung dari server */}
+        <LiveDonationNotification donations={dynamicDonations} />
+
         {/* 🚀 LAYOUT CLIENT WRAPPER */}
         <LayoutClientWrapper>
           {children}
