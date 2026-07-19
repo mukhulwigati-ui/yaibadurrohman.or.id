@@ -1,10 +1,11 @@
 // app/api/webhook/pakasir/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
+import { google } from 'googleapis';
 
 export const dynamic = 'force-dynamic';
 
-// 🚀 BYPASS TESTED: Menggunakan client internal langsung agar terbebas dari masalah permission token di server hosting
+// 🚀 BYPASS CLIENT: Murni untuk update data esensial program website
 const client = createClient({
   projectId: '61d8vnuq',
   dataset: 'production',
@@ -14,7 +15,62 @@ const client = createClient({
 });
 
 // ===================================================================
-// WEBHOOK PAKASIR AUTOMATION + FONNTE NOTIFICATION
+// 📊 OTOMATISASI PENULISAN DATABASE KE GOOGLE SHEETS (ANTI-BONCOS)
+// ===================================================================
+async function appendToGoogleSheets(data: {
+  orderId: string;
+  name: string;
+  phone: string;
+  amount: number;
+  program: string;
+  date: string;
+}) {
+  try {
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    let cleanPhone = data.phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '62' + cleanPhone.slice(1);
+    }
+
+    // 🔗 LINK WA LANGSUNG: Otomatis aktif di cell Google Sheets admin
+    const whatsappFormula = cleanPhone 
+      ? `=HYPERLINK("https://wa.me/${cleanPhone}"; "${data.phone}")` 
+      : '-';
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: 'Sheet1!A:F',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [
+          [
+            data.date,
+            data.orderId,
+            data.name,
+            whatsappFormula,
+            data.amount,
+            data.program
+          ]
+        ],
+      },
+    });
+    console.log('📊 MUTASI GOOGLE SHEETS SUKSES: Data donatur aman tersimpan.');
+  } catch (err) {
+    console.error('🔥 GOOGLE SHEETS ERROR:', err);
+  }
+}
+
+// ===================================================================
+// MAIN WEBHOOK CONTROLLER
 // ===================================================================
 export async function POST(request: Request) {
   try {
@@ -22,20 +78,18 @@ export async function POST(request: Request) {
 
     console.log("======================================");
     console.log("🚀 WEBHOOK PAKASIR: MEMPROSES VERIFIKASI DANA MASUK");
-    console.log(JSON.stringify(payload, null, 2));
     console.log("======================================");
 
     const amount = payload.amount;
     const order_id = payload.order_id;
-    // 💡 Pakasir mengirimkan string "completed" atau "success" saat transaksi lunas
     const status = payload.status; 
 
     const cleanOrderId = order_id ? String(order_id).trim() : '';
     if (!cleanOrderId) {
-      return NextResponse.json({ success: false, message: "Order ID tidak ditemukan dalam payload." }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Order ID tidak ditemukan." }, { status: 400 });
     }
 
-    // 1. Validasi Status Pembayaran Sukses dari Pakasir (Mendukung 'completed', 'success', maupun 'paid')
+    // 1. Validasi Status Pembayaran Lunas dari Pakasir
     const cleanStatus = status ? String(status).toLowerCase().trim() : '';
     if (cleanStatus !== 'completed' && cleanStatus !== 'success' && cleanStatus !== 'paid') {
       return NextResponse.json({
@@ -45,20 +99,19 @@ export async function POST(request: Request) {
     }
 
     // ===================================================================
-    // 2. AMBIL DATA DARI PENDING BOX UNTUK CHECK DUPLIKASI DAN MENDAPATKAN SLUG
+    // 2. AMBIL DATA PENDING BOX & CEK DUPLIKASI AWAL (REM KUOTA SANITY)
     // ===================================================================
     const transactionQuery = `*[_type == "donationTransaction" && orderId == $orderId][0]`;
     const pendingTransaction = await client.fetch(transactionQuery, { orderId: cleanOrderId });
 
     let donorNameFromForm = "Hamba Allah";
     let donorPhoneFromForm = "";
-    let programSlug = "sedekah-subuh"; // Default fallback
+    let programSlug = "sedekah-subuh"; 
     let paymentMethodUsed = "QRIS";
 
     if (pendingTransaction) {
-      // ➔ ANTI-BONCOS UTAMA: Jika status transaksi di database penampung sudah sukses, hentikan operasi seketika!
       if (pendingTransaction.status === 'success') {
-        console.log(`♻️ Transaksi ${cleanOrderId} dihentikan awal demi menghemat kuota Sanity (Sudut Siku).`);
+        console.log(`♻️ Transaksi ${cleanOrderId} dihentikan awal. Status Sanity sudah success.`);
         return NextResponse.json({ success: true, message: "Transaksi sudah sukses diproses sebelumnya." });
       }
 
@@ -75,7 +128,6 @@ export async function POST(request: Request) {
         paymentMethodUsed = String(pendingTransaction.paymentMethod).toUpperCase();
       }
     } else {
-      console.log(`⚠️ Data transaksi pending untuk ID ${cleanOrderId} tidak ditemukan. Membaca fallback ID.`);
       const upperOrderId = cleanOrderId.toUpperCase();
       if (upperOrderId.includes('MUALAF')) {
         programSlug = "bantu-mualaf-dan-dhuafa";
@@ -84,42 +136,40 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. AMBIL DOKUMEN PROGRAM UTAMA UNTUK VERIFIKASI ARRAY DONATUR
+    // 3. AMBIL DOKUMEN PROGRAM UTAMA
     const findQuery = `*[_type == "program" && slug.current == $slug][0] { _id, title, collectedRaw, donors }`;
     const finalProgram = await client.fetch(findQuery, { slug: programSlug });
 
     if (!finalProgram) {
-      return NextResponse.json({ success: false, message: `Program dengan slug '${programSlug}' tidak ditemukan.` }, { status: 404 });
+      return NextResponse.json({ success: false, message: `Program tidak ditemukan.` }, { status: 404 });
     }
 
     const existingDonors = finalProgram.donors || [];
     const isAlreadyExist = existingDonors.some((d: any) => d.orderId === cleanOrderId);
 
-    // ➔ ANTI-BONCOS KEDUA: Jika orderId ternyata sudah disuntikkan ke dokumen program utama, batalkan total!
     if (isAlreadyExist) {
-      console.log(`♻️ Transaksi ${cleanOrderId} sudah terdaftar di list donatur program utama. Eksekusi dibatalkan.`);
+      console.log(`♻️ Order ID ${cleanOrderId} sudah ada di program utama. Mutasi diabaikan.`);
       return NextResponse.json({ success: true, message: "Transaksi sudah tersinkronisasi sebelumnya." });
     }
 
-    // Pastikan nominal diambil secara akurat
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
     
-    // Format tanggal Indonesia
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
 
-    console.log(`💰 DANA MASUK & VALID: Memunculkan nama ${donorNameFromForm} senilai Rp ${donationAmount} di program ${finalProgram.title}`);
+    console.log(`💰 DANA MASUK VALID: Memproses data ${donorNameFromForm} sebesar Rp ${donationAmount}`);
     
     // ===================================================================
-    // 4. MENJALANKAN DUA MUTASI SECARA BERBURUTAN (TRANSAKSI + PROGRAM UTAMA)
+    // 4. JALANKAN MUTASI SANITY (HANYA UNTUK DATA PENTING WEBSITE)
     // ===================================================================
     if (pendingTransaction) {
       await client.patch(pendingTransaction._id).set({ status: 'success' }).commit();
     }
 
+    // Update nominal progress bar terkumpul di website utama
     await client
       .patch(finalProgram._id)
       .setIfMissing({ collectedRaw: 0, donors: [] })
@@ -136,7 +186,19 @@ export async function POST(request: Request) {
       .commit();
 
     // ===================================================================
-    // 🚀 5. OUTBOUND NOTIFIKASI WA VIA FONNTE API
+    // 📊 5. SIMPAN DATABASE INDUK UTAMA KE GOOGLE SHEETS
+    // ===================================================================
+    await appendToGoogleSheets({
+      date: currentDate,
+      orderId: cleanOrderId,
+      name: donorNameFromForm,
+      phone: donorPhoneFromForm,
+      amount: donationAmount,
+      program: finalProgram.title
+    });
+
+    // ===================================================================
+    // 🚀 6. KIRIM NOTIFIKASI WA VIA FONNTE
     // ===================================================================
     if (donorPhoneFromForm !== '') {
       let formattedPhone = donorPhoneFromForm.replace(/[^0-9]/g, '');
@@ -162,35 +224,23 @@ export async function POST(request: Request) {
         `*LAZIS Khoiro Ummah* (lazisku.com)`;
 
       try {
-        const fonnteResponse = await fetch('https://api.fonnte.com/send', {
+        await fetch('https://api.fonnte.com/send', {
           method: 'POST',
-          headers: {
-            'Authorization': process.env.FONNTE_TOKEN || '', 
-          },
-          body: new URLSearchParams({
-            target: formattedPhone,
-            message: messageText,
-          }),
+          headers: { 'Authorization': process.env.FONNTE_TOKEN || '' },
+          body: new URLSearchParams({ target: formattedPhone, message: messageText }),
         });
-
-        const fonnteData = await fonnteResponse.json();
-        if (fonnteData.status) {
-          console.log(`📱 Notifikasi WA sukses terkirim lewat Fonnte ke: ${formattedPhone}`);
-        } else {
-          console.error(`❌ Fonnte API merespons gagal:`, fonnteData.reason || 'Penyebab tidak diketahui');
-        }
       } catch (fonnteErr) {
-        console.error(`🔥 Gagal menghubungi endpoint API Fonnte:`, fonnteErr);
+        console.error(`🔥 FONNTE ERROR:`, fonnteErr);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Sukses otomatis! Dana terverifikasi, nama ${donorNameFromForm} tampil, dan notifikasi WA diproses.`
+      message: `Sukses otomatis! Tercatat di Google Sheets dan aman dari kuota boncos.`
     });
 
   } catch (error: any) {
-    console.error("🔥 WEBHOOK AUTOMATION ERROR:", error);
+    console.error("🔥 CONTROLLER ERROR:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
