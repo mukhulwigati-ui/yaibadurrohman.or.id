@@ -19,9 +19,9 @@ export async function GET(request: Request) {
       formattedPhone = '62' + formattedPhone.slice(1);
     }
 
-    // 🚀 QUERY GROQ LENGKAP: 
+    // 🚀 QUERY GROQ LENGKAP + RESOLVE PROGRAM TITLE DI DONATIONS: 
     // 1. Mengambil profil fundraiser
-    // 2. Mengambil donasi sukses berdasarkan field 'fundraiserPhone' yang sinkron dengan webhook & skema
+    // 2. Mengambil donasi sukses beserta nama program terkait dengan mencocokkan field 'slug'
     // 3. Mengambil seluruh program aktif agar muncul di daftar multi-link afiliasi dashboard
     const query = `{
       "profile": *[_type == "fundraiser" && (phone == $phone || phone == $rawPhone)][0] {
@@ -34,6 +34,9 @@ export async function GET(request: Request) {
       "donations": *[_type == "donationTransaction" && status == "success" && (fundraiserPhone == $phone || fundraiserPhone == $rawPhone)] | order(_createdAt desc) {
         amount,
         donorName,
+        slug,
+        // 🚀 RESOLVE JUDUL PROGRAM: Mengambil title dari schema program berdasarkan slug transaksi saat ini (^.slug)
+        "programTitle": *[_type == "program" && slug.current == ^.slug][0].title,
         _createdAt
       },
       "programs": *[_type == "program" && !(_id in path('drafts.**'))] {
@@ -61,12 +64,12 @@ export async function GET(request: Request) {
         totalEarnings,
         donationCount: data.donations.length,
         history: data.donations,
-        programs: data.programs // 🚀 SUPLAI DATA INI AGAR MAPPING MULTI-LINK DI FRONTEND BEKERJA
+        programs: data.programs // SUPLAI DATA INI AGAR MAPPING MULTI-LINK DI FRONTEND BEKERJA
       },
       {
         status: 200,
         headers: {
-          // 🚀 FIXED: Jangan gunakan cache berdurasi (s-maxage) untuk halaman statistik keuangan!
+          // FIXED: Jangan gunakan cache berdurasi (s-maxage) untuk halaman statistik keuangan!
           // Gunakan no-store agar donasi QRIS sukses langsung menambah angka di layar saat itu juga.
           'Cache-Control': 'no-store, max-age=0, must-revalidate',
         },

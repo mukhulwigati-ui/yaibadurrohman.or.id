@@ -7,7 +7,10 @@ export default function FundraiserStatsPage() {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState('');
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  
+  // 🚀 STATE: Mengontrol pilihan program di dropdown & feedback salin
+  const [selectedSlug, setSelectedSlug] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleCheckStats = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,6 +19,8 @@ export default function FundraiserStatsPage() {
     setLoading(true);
     setError('');
     setStats(null);
+    setSelectedSlug(''); // Reset pilihan dropdown setiap cek nomor baru
+    setCopied(false);
 
     try {
       const res = await fetch(`/api/fundraiser/stats?phone=${phone}`);
@@ -33,10 +38,10 @@ export default function FundraiserStatsPage() {
     }
   };
 
-  const handleCopy = (text: string, index: number) => {
+  const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -74,7 +79,7 @@ export default function FundraiserStatsPage() {
 
         {/* Hasil Tampilan Statistik Perolehan */}
         {stats && (
-          <div className="space-y-4 pt-2 border-t border-gray-100 animate-fade-in">
+          <div className="space-y-4 pt-2 border-t border-gray-100">
             <div className="bg-gray-50/70 border border-gray-200/60 p-4 space-y-3 rounded-none">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Nama Relawan</span>
@@ -119,30 +124,48 @@ export default function FundraiserStatsPage() {
             </div>
 
             {/* ===================================================================
-                🚀 AKSI DAFTAR TAUTAN MULTI-PROGRAM: Mapping Semua Link Aktif
+                🚀 AKSI TAUTAN MULTI-PROGRAM: Model Dropdown Lebih Ringkas & Rapi
                =================================================================== */}
             <div className="mt-4 pt-2 text-left space-y-3">
-              <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">🔗 Daftar Tautan Afiliasi Program Anda</label>
+              <label className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">
+                🔗 Pilih & Salin Tautan Afiliasi Program Anda
+              </label>
               
-              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                {stats.programs && stats.programs.length > 0 ? (
-                  stats.programs.map((prog: any, index: number) => {
+              {stats.programs && stats.programs.length > 0 ? (
+                <div className="space-y-3">
+                  {/* Dropdown Menu untuk Memilih Program Donasi */}
+                  <select
+                    value={selectedSlug}
+                    onChange={(e) => {
+                      setSelectedSlug(e.target.value);
+                      setCopied(false);
+                    }}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-none text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white text-gray-700"
+                  >
+                    <option value="">-- Pilih Program Donasi --</option>
+                    {stats.programs.map((prog: any, index: number) => (
+                      <option key={index} value={prog.slug}>
+                        {prog.title}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Tautan Generator Otomatis yang Muncul Berdasarkan Opsi yang Dipilih */}
+                  {selectedSlug && (() => {
                     const cleanPhone = phone.replace(/[^0-9]/g, '');
                     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-                    const affiliateUrl = `${baseUrl}/campaign/${prog.slug}?ref=${cleanPhone}`;
+                    const affiliateUrl = `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
                     
                     return (
-                      <div key={index} className="border border-gray-200 bg-gray-50/50 p-2.5 space-y-2">
-                        <div className="flex justify-between items-start gap-2">
-                          <span className="text-[10px] font-bold text-gray-700 line-clamp-2 leading-tight flex-1">
-                            {prog.title}
-                          </span>
+                      <div className="border border-gray-200 bg-gray-50/30 p-2.5 space-y-2 transition-all">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Tautan Siap Disebar:</span>
                           <button 
                             type="button"
-                            onClick={() => handleCopy(affiliateUrl, index)}
-                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 transition-all text-white ${copiedIndex === index ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'}`}
+                            onClick={() => handleCopy(affiliateUrl)}
+                            className={`text-[9px] font-black uppercase tracking-wider px-3 py-1 transition-all text-white ${copied ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'}`}
                           >
-                            {copiedIndex === index ? 'Tersalin' : 'Salin'}
+                            {copied ? 'Tersalin' : 'Salin'}
                           </button>
                         </div>
                         <div className="bg-white border border-gray-200 px-2 py-1.5 text-[9px] font-mono text-gray-500 truncate select-all">
@@ -150,50 +173,64 @@ export default function FundraiserStatsPage() {
                         </div>
                       </div>
                     );
-                  })
-                ) : (
-                  // Fallback jika API backend belum mengembalikan array program dinamis
-                  <div className="border border-gray-200 bg-gray-50/50 p-2.5 space-y-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <span className="text-[10px] font-bold text-gray-700 line-clamp-2 leading-tight flex-1">
-                        Program Utama Aktif
-                      </span>
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-                          handleCopy(`${baseUrl}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`, 999);
-                        }}
-                        className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 transition-all text-white ${copiedIndex === 999 ? 'bg-emerald-600' : 'bg-purple-600 hover:bg-purple-700'}`}
-                      >
-                        {copiedIndex === 999 ? 'Tersalin' : 'Salin'}
-                      </button>
-                    </div>
-                    <div className="bg-white border border-gray-200 px-2 py-1.5 text-[9px] font-mono text-gray-500 truncate">
-                      {`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  })()}
+                </div>
+              ) : (
+                // Fallback otomatis jika data array program dinamis gagal termuat
+                <div className="flex rounded-none overflow-hidden border border-gray-300">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
+                    className="flex-1 bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600 focus:outline-none"
+                    id="affiliate-link-input-fallback"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const inputEl = document.getElementById('affiliate-link-input-fallback') as HTMLInputElement;
+                      if (inputEl) {
+                        navigator.clipboard.writeText(inputEl.value);
+                        alert('Tautan dasar berhasil disalin!');
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 text-xs uppercase tracking-wider transition"
+                  >
+                    Salin
+                  </button>
+                </div>
+              )}
               
               <p className="text-[9px] text-gray-400 font-medium leading-relaxed">
-                *Klik salin pada program donasi pilihan Anda, kemudian sebarkan ke jaringan sosial media. Setiap donasi sukses otomatis terikat pada akun Anda.
+                *Silakan pilih program donasi melalui menu drop-down di atas, lalu klik tombol salin untuk menyebarkan link afiliasi unik milik Anda.
               </p>
             </div>
 
-            {/* Riwayat Dukungan Transaksi */}
+            {/* ===================================================================
+                🚀 FIXED: RIWAYAT TRANSAKSI DENGAN DETAIL NAMA PROGRAM DONASI
+               =================================================================== */}
             <div className="space-y-2 border-t border-gray-100 pt-3">
               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Riwayat Dukungan Transaksi</h3>
               <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
                 {stats.history && stats.history.length > 0 ? (
                   stats.history.map((item: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-gray-100 text-xs shadow-xs">
-                      <span className="font-bold text-gray-700 line-clamp-1">{item.donorName}</span>
-                      <span className="font-black text-emerald-600 font-mono">+Rp {Number(item.amount).toLocaleString('id-ID')}</span>
+                    <div key={idx} className="flex justify-between items-center p-2.5 bg-white border border-gray-100 text-xs shadow-xs gap-3">
+                      <div className="flex-1 min-w-0 text-left">
+                        {/* Nama Donatur */}
+                        <span className="font-bold text-gray-700 block truncate">{item.donorName}</span>
+                        {/* Keterangan Asal Program Donasi */}
+                        <span className="text-[9px] font-medium text-purple-600 bg-purple-50 px-1.5 py-0.5 inline-block truncate max-w-full mt-0.5">
+                          Program: {item.programTitle || 'Sedekah Umum / Non-Slug'}
+                        </span>
+                      </div>
+                      {/* Nominal Dana Sukses */}
+                      <span className="font-black text-emerald-600 font-mono text-right whitespace-nowrap">
+                        +Rp {Number(item.amount).toLocaleString('id-ID')}
+                      </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-[11px] text-gray-400 italic py-2">Belum ada donasi masuk dari link Anda.</p>
+                  <p className="text-[11px] text-gray-400 italic py-2 text-center">Belum ada donasi masuk dari link Anda.</p>
                 )}
               </div>
             </div>
