@@ -1,53 +1,63 @@
 // app/blog/[slug]/page.tsx
 import { Metadata } from 'next';
+import { createClient } from '@sanity/client';
 import BlogDetailClient from '@/components/BlogDetailClient';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-// 🚀 PROTEKSI 1: Mengunci batas revalidasi halaman detail artikel selama 60 detik di level server Next.js
+// Inisialisasi Sanity Client untuk kebutuhan server-side metadata
+const serverClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '915u7hh1',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  useCdn: false,
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_TOKEN,
+});
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 // ===================================================================
-// 🚀 DYNAMIC METADATA: Menembak Open Graph & Gambar Unik Artikel ke Medsos
+// 🚀 DYNAMIC METADATA: Open Graph & SEO untuk Detail Artikel
 // ===================================================================
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
   const fallbackImage = `${siteUrl}/images/banner-utama.png`;
-  
+
   let imageUrl = fallbackImage;
   let articleTitle = 'Kabar Berita | LAZIS Khoiro Ummah';
-  let articleExcerpt = ''; 
+  let articleExcerpt = '';
 
   try {
-    // 🚀 PROTEKSI 2: Menghapus cache no-store dan menyematkan revalidate 60 detik agar berbagi cache dengan API Route
-    const res = await fetch(`${siteUrl}/api/news/${slug}`, {
-      next: { revalidate: 60 },
-    });
-    const json = await res.json();
-    const article = json?.data?.article;
+    // 🚀 Query langsung ke Sanity untuk metadata yang presisi dan cepat
+    const article = await serverClient.fetch(
+      `*[_type in ["news", "post", "article"] && slug.current == $slug][0]{
+        title,
+        excerpt,
+        content,
+        "imageUrl": coalesce(mainImage.asset->url, image.asset->url, banner.asset->url)
+      }`,
+      { slug }
+    );
 
     if (article) {
       if (article.title) articleTitle = article.title;
 
-      // ===================================================================
-      // 🚀 MASTER LOGIC: GENERATE CUPLIKAN DINAMIS DARI ISI ARTIKEL ASLI
-      // ===================================================================
+      // Generasi Cuplikan / Excerpt
       if (article.excerpt && typeof article.excerpt === 'string') {
         articleExcerpt = article.excerpt;
       } else if (article.content) {
         if (typeof article.content === 'string') {
           articleExcerpt = article.content.slice(0, 150) + '...';
-        } 
-        else if (Array.isArray(article.content)) {
+        } else if (Array.isArray(article.content)) {
           const plainText = article.content
             .filter((block: any) => block._type === 'block' && block.children)
             .map((block: any) => block.children.map((child: any) => child.text).join(''))
             .join(' ');
-          
+
           articleExcerpt = plainText ? plainText.slice(0, 150) + '...' : '';
         }
       }
@@ -56,18 +66,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         articleExcerpt = `Baca kabar berita lengkap mengenai "${articleTitle}" secara resmi di platform LAZIS Khoiro Ummah.`;
       }
 
-      const rawImage = article.imageUrl || article.image;
-
-      if (rawImage && typeof rawImage === 'string') {
-        if (rawImage.startsWith('http')) {
-          imageUrl = rawImage;
-        } else {
-          imageUrl = `${siteUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
-        }
+      if (article.imageUrl && typeof article.imageUrl === 'string') {
+        imageUrl = article.imageUrl.startsWith('http')
+          ? article.imageUrl
+          : `${siteUrl}${article.imageUrl.startsWith('/') ? '' : '/'}${article.imageUrl}`;
       }
     }
   } catch (error) {
-    console.error('🔥 Metadata patch error:', error);
+    console.error('🔥 Metadata fetch error:', error);
     articleExcerpt = 'Salurkan sedekah dan zakat Anda secara amanah melalui LAZIS Khoiro Ummah.';
   }
 
@@ -86,7 +92,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'article',
       images: [
         {
-          url: imageUrl, 
+          url: imageUrl,
           width: 1200,
           height: 630,
           type: 'image/png',

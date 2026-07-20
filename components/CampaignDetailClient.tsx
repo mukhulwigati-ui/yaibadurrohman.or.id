@@ -1,10 +1,45 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PortableText } from '@portabletext/react';
+import { ArrowLeft, Share2, Copy, Check, MessageCircle } from 'lucide-react';
 
 // ===================================================================
-// IN-LINE WIDGET KALKULATOR ZAKAT (SUDUT SIKU / ROUNDED-NONE)
+// 1. HEADER KHUSUS DETAIL PROGRAM
+// ===================================================================
+function DetailHeader({ title = 'Program Donasi', onOpenShare }: { title?: string; onOpenShare: () => void }) {
+  const router = useRouter();
+
+  return (
+    <header className="sticky top-0 z-50 bg-[#0d5c91] text-white w-full shadow-sm">
+      <div className="w-full max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center justify-center p-1.5 border border-white/30 rounded-lg hover:bg-white/10 transition-colors"
+          aria-label="Kembali"
+        >
+          <ArrowLeft className="w-4 h-4 text-white" />
+        </button>
+
+        <h1 className="text-sm font-bold text-white tracking-tight truncate max-w-[200px] sm:max-w-[260px]">
+          {title}
+        </h1>
+
+        <button
+          onClick={onOpenShare}
+          className="flex items-center justify-center p-1.5 border border-white/30 rounded-lg hover:bg-white/10 transition-colors"
+          aria-label="Bagikan"
+        >
+          <Share2 className="w-4 h-4 text-white" />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+// ===================================================================
+// 2. IN-LINE WIDGET KALKULATOR ZAKAT
 // ===================================================================
 function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: string) => void }) {
   const [activeTab, setActiveTab] = useState<'penghasilan' | 'maal' | 'emas'>('penghasilan');
@@ -39,39 +74,70 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
   }
 
   return (
-    <div className="border border-gray-200 rounded-none bg-white overflow-hidden mt-6">
-      <div className="flex border-b border-gray-200 text-[10px] font-black bg-gray-50/50">
-        <button onClick={() => { setActiveTab('penghasilan'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'penghasilan' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>PENGHASILAN</button>
-        <button onClick={() => { setActiveTab('maal'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'maal' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>MAAL / TABUNGAN</button>
-        <button onClick={() => { setActiveTab('emas'); setInput1(''); setInput2(''); }} className={`flex-1 py-3 text-center rounded-none border-b-2 ${activeTab === 'emas' ? 'text-emerald-600 border-emerald-600 bg-white' : 'text-gray-400 border-transparent'}`}>EMAS SIMPANAN</button>
+    <div className="border border-gray-200/90 rounded-none bg-white overflow-hidden my-4">
+      <div className="flex border-b border-gray-200 text-[10px] font-bold bg-gray-50/80">
+        <button
+          onClick={() => { setActiveTab('penghasilan'); setInput1(''); setInput2(''); }}
+          className={`flex-1 py-2.5 text-center border-b-2 ${activeTab === 'penghasilan' ? 'text-sky-600 border-sky-600 bg-white' : 'text-slate-400 border-transparent'}`}
+        >
+          PENGHASILAN
+        </button>
+        <button
+          onClick={() => { setActiveTab('maal'); setInput1(''); setInput2(''); }}
+          className={`flex-1 py-2.5 text-center border-b-2 ${activeTab === 'maal' ? 'text-sky-600 border-sky-600 bg-white' : 'text-slate-400 border-transparent'}`}
+        >
+          MAAL
+        </button>
+        <button
+          onClick={() => { setActiveTab('emas'); setInput1(''); setInput2(''); }}
+          className={`flex-1 py-2.5 text-center border-b-2 ${activeTab === 'emas' ? 'text-sky-600 border-sky-600 bg-white' : 'text-slate-400 border-transparent'}`}
+        >
+          EMAS
+        </button>
       </div>
-      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-        <div className="space-y-3 text-left">
-          {activeTab !== 'emas' ? (
-            <>
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 block mb-1">Pendapatan Utama / Tabungan (Rp)</label>
-                <input type="text" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="0" value={input1} onChange={(e) => setInput1(formatRupiah(e.target.value))} />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 block mb-1">Bonus / Aset Lainnya (Rp)</label>
-                <input type="text" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="0" value={input2} onChange={(e) => setInput2(formatRupiah(e.target.value))} />
-              </div>
-            </>
-          ) : (
+      <div className="p-3 space-y-3 text-left">
+        {activeTab !== 'emas' ? (
+          <>
             <div>
-              <label className="text-[10px] font-bold text-gray-400 block mb-1">Total Berat Emas (Gram)</label>
-              <input type="number" className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-bold" placeholder="Contoh: 90" value={input1} onChange={(e) => setInput1(e.target.value)} />
+              <label className="text-[10px] font-normal text-slate-400 block mb-1">Pendapatan Utama / Tabungan (Rp)</label>
+              <input
+                type="text"
+                className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-semibold text-slate-700"
+                placeholder="0"
+                value={input1}
+                onChange={(e) => setInput1(formatRupiah(e.target.value))}
+              />
             </div>
-          )}
-        </div>
-        <div className="bg-gray-50 border border-gray-100 p-4 text-center rounded-none space-y-2">
-          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Wajib Zakat Anda</span>
-          <span className="text-xl font-black text-emerald-600 block">Rp {totalZakat.toLocaleString('id-ID')}</span>
-          <button 
-            disabled={totalZakat <= 0} 
+            <div>
+              <label className="text-[10px] font-normal text-slate-400 block mb-1">Bonus / Aset Lainnya (Rp)</label>
+              <input
+                type="text"
+                className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-semibold text-slate-700"
+                placeholder="0"
+                value={input2}
+                onChange={(e) => setInput2(formatRupiah(e.target.value))}
+              />
+            </div>
+          </>
+        ) : (
+          <div>
+            <label className="text-[10px] font-normal text-slate-400 block mb-1">Total Berat Emas (Gram)</label>
+            <input
+              type="number"
+              className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs font-semibold text-slate-700"
+              placeholder="Contoh: 90"
+              value={input1}
+              onChange={(e) => setInput1(e.target.value)}
+            />
+          </div>
+        )}
+        <div className="bg-slate-50 border border-gray-100 p-3 text-center rounded-none space-y-1.5">
+          <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider block">Wajib Zakat Anda</span>
+          <span className="text-lg font-bold text-sky-600 block">Rp {totalZakat.toLocaleString('id-ID')}</span>
+          <button
+            disabled={totalZakat <= 0}
             onClick={() => onApplyAmount(totalZakat.toLocaleString('id-ID'))}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-2 rounded-none uppercase tracking-wider disabled:bg-gray-300"
+            className="w-full bg-sky-600 hover:bg-sky-700 text-white text-[10px] font-semibold py-2 rounded-none uppercase tracking-wider disabled:bg-gray-300 transition"
           >
             Masukkan ke Form 📥
           </button>
@@ -82,7 +148,7 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
 }
 
 // ===================================================================
-// MAIN DETAIL COMPONENT
+// 3. FORM DONASI COMPONENT
 // ===================================================================
 interface FormProps {
   donorName: string;
@@ -109,40 +175,69 @@ const DonationFormFields = ({
   handleDonate,
   submitting,
 }: FormProps) => (
-  <div className="space-y-4 text-left">
+  <div className="space-y-3.5 text-left">
     <div>
-      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nama Donatur</label>
-      <input type="text" placeholder="Hamba Allah (Boleh Kosong)" className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium" value={donorName} onChange={(e) => setDonorName(e.target.value)} />
+      <label className="text-[11px] font-normal text-slate-500 block mb-1">Nama Donatur</label>
+      <input
+        type="text"
+        placeholder="Hamba Allah (Boleh Kosong)"
+        className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs text-slate-700 focus:outline-sky-500 font-medium"
+        value={donorName}
+        onChange={(e) => setDonorName(e.target.value)}
+      />
     </div>
     <div>
-      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nomor WhatsApp</label>
-      <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-medium" value={donorPhone} onChange={(e) => setDonorPhone(e.target.value)} />
+      <label className="text-[11px] font-normal text-slate-500 block mb-1">Nomor WhatsApp</label>
+      <input
+        type="tel"
+        placeholder="Contoh: 081234567890"
+        className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs text-slate-700 focus:outline-sky-500 font-medium"
+        value={donorPhone}
+        onChange={(e) => setDonorPhone(e.target.value)}
+      />
     </div>
     <div>
-      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Metode Pembayaran</label>
-      <select className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs text-gray-700 focus:outline-emerald-500 font-bold bg-white cursor-pointer" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+      <label className="text-[11px] font-normal text-slate-500 block mb-1">Metode Pembayaran</label>
+      <select
+        className="w-full border border-gray-200 rounded-none px-3 py-2 text-xs text-slate-700 focus:outline-sky-500 font-semibold bg-white cursor-pointer"
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
         <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
         <option value="bri_va">🏦 BRI Virtual Account</option>
         <option value="bni_va">🏦 BNI Virtual Account</option>
         <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
         <option value="permata_va">🏦 Permata Bank Virtual Account</option>
         <option value="maybank_va">🏦 Maybank Virtual Account</option>
-        <option value="atm_bersama_va">🌐 ATM Bersama (Mandiri, BCA & Bank Lainnya)</option>
+        <option value="atm_bersama_va">🌐 ATM Bersama (Mandiri, BCA & Lainnya)</option>
       </select>
     </div>
     <div>
-      <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nominal Dana (Rp)</label>
+      <label className="text-[11px] font-normal text-slate-500 block mb-1">Nominal Infak / Zakat (Rp)</label>
       <div className="relative flex items-center">
-        <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-        <input type="text" placeholder="Minimal 1.000" className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500" value={amount} onChange={handleAmountChange} />
+        <span className="absolute left-3 text-xs font-semibold text-slate-400">Rp</span>
+        <input
+          type="text"
+          placeholder="Minimal 1.000"
+          className="w-full border border-gray-200 rounded-none pl-8 pr-3 py-2 text-xs font-bold text-slate-800 focus:outline-sky-500"
+          value={amount}
+          onChange={handleAmountChange}
+        />
       </div>
     </div>
-    <button onClick={handleDonate} disabled={submitting} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-none transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 shadow-md shadow-emerald-100">
+    <button
+      onClick={handleDonate}
+      disabled={submitting}
+      className="w-full bg-[#ff2e3b] hover:bg-red-600 active:scale-[0.99] text-white font-bold py-3.5 rounded-full transition text-xs uppercase tracking-wider disabled:bg-gray-300 shadow-md"
+    >
       {submitting ? 'Memproses...' : 'Tunaikan Sekarang 🚀'}
     </button>
   </div>
 );
 
+// ===================================================================
+// 4. MAIN DETAIL CLIENT COMPONENT (MOBILE-FIRST)
+// ===================================================================
 export default function CampaignDetailClient({ slug, referral }: { slug: string; referral: string | null }) {
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -152,18 +247,13 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
   const [submitting, setSubmitting] = useState(false);
   
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('qris');
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur' | 'laporan'>('cerita');
 
-  // --- STATE UNTUK MODAL REGISTRASI FUNDRAISER ---
-  const [isFundraiserModalOpen, setIsFundraiserModalOpen] = useState(false);
-  const [fundraiserData, setFundraiserData] = useState({ name: '', phone: '' });
-  const [fundraiserSubmitting, setFundraiserSubmitting] = useState(false);
-
   useEffect(() => {
-    fetch('/api/programs', {
-      cache: 'default'
-    })
+    fetch('/api/programs', { cache: 'default' })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
@@ -186,7 +276,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
   const handleDonate = async () => {
     const cleanAmount = amount.replace(/\./g, '');
     if (!cleanAmount || Number(cleanAmount) < 1000) {
-      alert('Masukkan nominal minimal Rp 1.000 gaes!');
+      alert('Masukkan nominal minimal Rp 1.000!');
       return;
     }
 
@@ -209,7 +299,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
       if (json.success && json.paymentUrl) {
         window.location.href = json.paymentUrl;
       } else {
-        alert(json.error || 'Gagal memproses tautan pembayaran dari Pakasir.');
+        alert(json.error || 'Gagal memproses tautan pembayaran.');
       }
     } catch (err) {
       alert('Terjadi kesalahan koneksi saat menghubungi server pembayaran.');
@@ -218,222 +308,185 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
     }
   };
 
-  const handleRegisterFundraiser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fundraiserData.name || !fundraiserData.phone) return alert('Mohon isi nama dan nomor WhatsApp Anda.');
-
-    setFundraiserSubmitting(true);
-    try {
-      const res = await fetch('/api/fundraiser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fundraiserData.name,
-          phone: fundraiserData.phone,
-          programId: program._id || program.id,
-        }),
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        alert('Pendaftaran berhasil! Silakan periksa pesan konfirmasi verifikasi yang dikirim via WhatsApp.');
-        setFundraiserData({ name: '', phone: '' });
-        setIsFundraiserModalOpen(false);
-      } else {
-        alert(`Gagal mengirim pengajuan: ${json.message}`);
-      }
-    } catch (err) {
-      console.error('🔥 Error submit fundraiser:', err);
-      alert('Terjadi gangguan jaringan saat memproses pendaftaran.');
-    } finally {
-      setFundraiserSubmitting(false);
+  const handleCopyLink = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-500 font-medium">Memuat detail program...</div>;
-  if (!program) return <div className="text-center py-20 text-red-500 font-medium">Program tidak ditemukan.</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-gray-100/70">
+      <DetailHeader title="Program Donasi" onOpenShare={() => setIsShareModalOpen(true)} />
+      <div className="text-center py-20 text-slate-400 font-normal text-xs">Memuat detail program...</div>
+    </div>
+  );
+
+  if (!program) return (
+    <div className="min-h-screen bg-gray-100/70">
+      <DetailHeader title="Program Donasi" onOpenShare={() => setIsShareModalOpen(true)} />
+      <div className="text-center py-20 text-red-500 font-normal text-xs">Program tidak ditemukan.</div>
+    </div>
+  );
 
   const rawTarget = program.targetAmount || 50000000;
   const percentage = Math.min(Math.round((program.collectedRaw / rawTarget) * 100), 100);
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-16 pb-36 lg:pb-8">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-gray-100/70 pb-28">
+      {/* 🚀 1. HEADER DETAIL PROGRAM */}
+      <DetailHeader title="Program Donasi" onOpenShare={() => setIsShareModalOpen(true)} />
+
+      {/* 🚀 2. KONTEN CONTAINER MOBILE (max-w-md mx-auto) */}
+      <div className="w-full max-w-md mx-auto px-3 pt-4 space-y-4">
         
-        <div className="lg:col-span-2 space-y-5 flex flex-col">
-          <div className="text-left">
-            <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-none uppercase tracking-wider">
-              {program.category || 'Kebaikan'}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#333333] mt-3 leading-tight tracking-tight">
-              {program.title}
-            </h1>
-          </div>
+        {/* Card Utama Penggalangan Dana */}
+        <div className="bg-white rounded-none p-4 shadow-2xs border border-gray-200/90 space-y-3.5">
           
-          <div className="rounded-none overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
+          {/* Banner Gambar */}
+          <div className="rounded-none overflow-hidden bg-gray-100 aspect-[16/10] w-full border border-gray-100">
             <img src={program.image} alt={program.title} className="w-full h-full object-cover" />
           </div>
 
-          <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400 space-x-6 pt-2">
-            <button onClick={() => setActiveTab('cerita')} className={`pb-3 focus:outline-none ${activeTab === 'cerita' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              DETAIL CERITA & KALKULATOR
+          {/* Judul Program */}
+          <h1 className="text-sm sm:text-base font-bold text-slate-800 leading-snug tracking-tight">
+            {program.title}
+          </h1>
+
+          {/* Progres Terkumpul & Target */}
+          <div className="space-y-1.5 pt-1">
+            <p className="text-sm font-bold text-[#0d5c91]">
+              Rp {Number(program.collectedRaw || 0).toLocaleString('id-ID')}
+            </p>
+            <div className="flex justify-between items-center text-[11px] text-slate-400">
+              <span>Terkumpul dari <strong className="text-slate-600">Rp {rawTarget.toLocaleString('id-ID')}</strong></span>
+              <span>{program.daysLeft ? `${program.daysLeft} hari lagi` : 'Mendesak'}</span>
+            </div>
+
+            <div className="w-full bg-gray-100 h-2 rounded-none overflow-hidden">
+              <div className="bg-[#ff2e3b] h-full rounded-none transition-all duration-500" style={{ width: `${percentage}%` }} />
+            </div>
+          </div>
+
+          {/* Tab Menu Navigasi */}
+          <div className="flex border-b border-gray-200 text-xs font-semibold text-slate-400 space-x-4 pt-2">
+            <button
+              onClick={() => setActiveTab('cerita')}
+              className={`pb-2 focus:outline-none ${activeTab === 'cerita' ? 'text-sky-600 border-b-2 border-sky-600' : 'border-b-2 border-transparent'}`}
+            >
+              Cerita
             </button>
-            <button onClick={() => setActiveTab('donatur')} className={`pb-3 focus:outline-none ${activeTab === 'donatur' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              DONATUR ({(program.donors || []).length})
+            <button
+              onClick={() => setActiveTab('donatur')}
+              className={`pb-2 focus:outline-none ${activeTab === 'donatur' ? 'text-sky-600 border-b-2 border-sky-600' : 'border-b-2 border-transparent'}`}
+            >
+              Donatur ({(program.donors || []).length})
             </button>
-            <button onClick={() => setActiveTab('laporan')} className={`pb-3 focus:outline-none ${activeTab === 'laporan' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'border-b-2 border-transparent'}`}>
-              LAPORAN PENYALURAN ({(program.reports || []).length})
+            <button
+              onClick={() => setActiveTab('laporan')}
+              className={`pb-2 focus:outline-none ${activeTab === 'laporan' ? 'text-sky-600 border-b-2 border-sky-600' : 'border-b-2 border-transparent'}`}
+            >
+              Laporan ({(program.reports || []).length})
             </button>
           </div>
 
-          <div className="bg-transparent py-2 w-full text-left">
+          {/* Isi Konten Sesuai Tab */}
+          <div className="py-2 text-left">
             {activeTab === 'cerita' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {program.category?.toUpperCase() === 'ZAKAT' && (
-                  <div className="bg-emerald-50/40 p-1 border border-dashed border-emerald-600/30">
-                    <p className="text-[11px] font-black text-emerald-800 uppercase tracking-widest px-4 pt-3">🧮 Simulasi Kalkulator Zakat Digital</p>
-                    <EmbeddedZakatCalculator onApplyAmount={(val) => setAmount(val)} />
-                  </div>
+                  <EmbeddedZakatCalculator onApplyAmount={(val) => setAmount(val)} />
                 )}
 
-                <div className="text-gray-700 text-base leading-relaxed space-y-4 font-normal tracking-wide dynamic-portable-text">
-                  {program.description ? (typeof program.description === 'string' ? <p>{program.description}</p> : <PortableText value={program.description} />) : <p className="text-gray-400 italic text-xs">Belum ada cerita detail.</p>}
+                <div className="text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3 font-normal">
+                  {program.description ? (
+                    typeof program.description === 'string' ? (
+                      <p>{program.description}</p>
+                    ) : (
+                      <PortableText value={program.description} />
+                    )
+                  ) : (
+                    <p className="text-slate-400 italic">Belum ada cerita detail.</p>
+                  )}
                 </div>
               </div>
             )}
 
             {activeTab === 'donatur' && (
-              <div className="space-y-3 py-2">
-                {(program.donors || []).length > 0 ? [...program.donors].reverse().map((donor: any, idx: number) => (
-                  <div key={idx} className="bg-white border border-gray-100 rounded-none p-4 shadow-sm flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-none bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">{(donor.name || 'H').toUpperCase().slice(0, 1)}</div>
-                      <div>
-                        <p className="text-xs font-black text-gray-700">{donor.name || 'Hamba Allah'}</p>
-                        <p className="text-[10px] text-gray-400 font-medium">{donor.date || 'Baru Saja'}</p>
+              <div className="space-y-2 py-1">
+                {(program.donors || []).length > 0 ? (
+                  [...program.donors].reverse().map((donor: any, idx: number) => (
+                    <div key={idx} className="bg-slate-50 border border-gray-100 rounded-none p-2.5 flex items-center justify-between">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-none bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+                          {(donor.name || 'H').toUpperCase().slice(0, 1)}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-700">{donor.name || 'Hamba Allah'}</p>
+                          <p className="text-[10px] text-slate-400 font-normal">{donor.date || 'Baru Saja'}</p>
+                        </div>
                       </div>
+                      <p className="text-xs font-semibold text-sky-600">{`+Rp ${Number(donor.amount || 0).toLocaleString('id-ID')}`}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-black text-emerald-600">{`+Rp ${Number(donor.amount || 0).toLocaleString('id-ID')}`}</p>
-                    </div>
-                  </div>
-                )) : <p className="text-center py-10 text-xs text-gray-400">Belum ada donatur.</p>}
+                  ))
+                ) : (
+                  <p className="text-center py-6 text-xs text-slate-400">Belum ada donatur.</p>
+                )}
               </div>
             )}
 
             {activeTab === 'laporan' && (
-              <div className="space-y-4 py-2">
-                {(program.reports || []).length > 0 ? [...program.reports].reverse().map((report: any, idx: number) => (
-                  <div key={idx} className="bg-white border border-gray-100 rounded-none p-5 shadow-sm space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
-                      <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight">{report.title || 'Laporan Penyaluran'}</h4>
-                      <span className="text-[10px] text-gray-400 font-bold">{report.date}</span>
+              <div className="space-y-3 py-1">
+                {(program.reports || []).length > 0 ? (
+                  [...program.reports].reverse().map((report: any, idx: number) => (
+                    <div key={idx} className="bg-slate-50 border border-gray-100 rounded-none p-3 space-y-2">
+                      <div className="flex items-center justify-between border-b border-gray-200/60 pb-1.5">
+                        <h4 className="text-xs font-semibold text-slate-700">{report.title || 'Laporan Penyaluran'}</h4>
+                        <span className="text-[10px] text-slate-400">{report.date}</span>
+                      </div>
+                      <div className="text-xs text-slate-600 leading-relaxed">
+                        {typeof report.content === 'string' ? <p>{report.content}</p> : <PortableText value={report.content} />}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-600 leading-relaxed space-y-2">
-                      {typeof report.content === 'string' ? <p>{report.content}</p> : <PortableText value={report.content} />}
-                    </div>
-                  </div>
-                )) : <div className="border border-dashed border-gray-200 p-8 text-center rounded-none bg-white"><p className="text-xs text-gray-400 font-medium">Belum ada pembaruan laporan.</p></div>}
+                  ))
+                ) : (
+                  <p className="text-center py-6 text-xs text-slate-400">Belum ada pembaruan laporan.</p>
+                )}
               </div>
             )}
           </div>
+
         </div>
 
-        {/* SIDEBAR FORM & AKSI (DESKTOP) */}
-        <div className="hidden lg:block bg-white rounded-none p-6 shadow-sm border border-gray-100 h-fit lg:sticky lg:top-24">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Dana Terkumpul</p>
-          <p className="text-3xl font-black text-emerald-600 mt-1 text-left">{`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5 font-medium text-left">Target Rp {rawTarget.toLocaleString('id-ID')}</p>
-          <div className="w-full bg-gray-100 h-2 rounded-none mt-4 overflow-hidden">
-            <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
-          </div>
-          {referral && (
-            <div className="mt-3 bg-purple-50 border border-dashed border-purple-200 p-2 text-center">
-              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide">✨ Link Afiliasi Terdeteksi</p>
-            </div>
-          )}
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <DonationFormFields 
-              donorName={donorName} setDonorName={setDonorName}
-              donorPhone={donorPhone} setDonorPhone={setDonorPhone}
-              paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-              amount={amount} handleAmountChange={handleAmountChange}
-              handleDonate={handleDonate} submitting={submitting}
-            />
-          </div>
+      </div>
 
+      {/* 🚀 3. STICKY BOTTOM BAR FLOATING AKSI */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center pb-2">
+        <div className="w-[calc(100%-1.5rem)] max-w-[calc(28rem-1.5rem)] bg-white border border-gray-200/90 p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pointer-events-auto rounded-none">
           <button 
-            onClick={() => setIsFundraiserModalOpen(true)}
-            className="w-full bg-white border-2 border-purple-600 text-purple-700 hover:border-emerald-500 hover:text-emerald-600 font-bold py-3 px-4 rounded-none transition-all duration-300 text-xs tracking-wider uppercase mt-4 flex items-center justify-center space-x-2 border-dashed"
+            onClick={() => setIsMobileFormOpen(true)} 
+            className="w-full bg-[#ff2e3b] hover:bg-red-600 active:scale-[0.99] text-white text-sm font-bold py-3.5 rounded-full shadow-md transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-            <span>Menjadi Fundraiser</span>
+            Donasi Sekarang
           </button>
         </div>
-
       </div>
 
-      {/* ===================================================================
-          🚀 TRIGGER STICKY BOTTOM BAR (MOBILE) -> SEKARANG RED MERAH FIRE 🔥
-          =================================================================== */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40 flex flex-col space-y-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-none">
-        
-        <div className="flex justify-between items-end text-left w-full px-0.5">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Terkumpul</span>
-            <span className="text-lg font-black text-emerald-600 leading-tight">
-              {`Rp ${Number(program.collectedRaw || 0).toLocaleString('id-ID')}`}
-            </span>
-          </div>
-          <div className="flex flex-col text-right">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Target Sasaran</span>
-            <span className="text-xs font-bold text-gray-500 leading-tight">
-              {`Rp ${rawTarget.toLocaleString('id-ID')}`}
-            </span>
-          </div>
-        </div>
-
-        <div className="w-full bg-gray-100 h-1 rounded-none overflow-hidden">
-          <div className="bg-emerald-500 h-full" style={{ width: `${percentage}%` }}></div>
-        </div>
-
-        {/* Info Tracking Singkat Mobile */}
-        {referral && (
-          <div className="bg-purple-50 border border-dashed border-purple-200 py-1 text-center text-[9px] font-bold text-purple-700 uppercase tracking-wider">
-            Melalui Kode Afiliasi Relawan Aktif
-          </div>
-        )}
-
-        {/* 🔴 TOMBOL UTAMA: Berganti ke warna merah menyala agar terlihat sangat mencolok */}
-        <button 
-          onClick={() => setIsMobileFormOpen(true)} 
-          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-none shadow-md shadow-red-100 transition-colors"
-        >
-          Donasi Sekarang 🚀
-        </button>
-
-        <button 
-          onClick={() => setIsFundraiserModalOpen(true)}
-          className="w-full bg-white border border-purple-600 text-purple-700 hover:text-emerald-600 hover:border-emerald-500 text-[10px] font-black uppercase tracking-wider py-2.5 rounded-none transition-colors flex items-center justify-center space-x-2 border-dashed"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-          </svg>
-          <span>Menjadi Fundraiser</span>
-        </button>
-      </div>
-
-      {/* MOBILE POPUP FORM DONASI */}
+      {/* 🚀 4. POPUP FORM DONASI MOBILE */}
       {isMobileFormOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3">
           <div className="absolute inset-0" onClick={() => setIsMobileFormOpen(false)} />
-          <div className="relative w-full bg-white rounded-none p-6 space-y-4 max-h-[85vh] overflow-y-auto z-10">
-            <div className="w-12 h-1 bg-gray-200 rounded-none mx-auto mb-2" onClick={() => setIsMobileFormOpen(false)} />
+          <div className="relative w-[calc(100%-1.5rem)] max-w-[calc(28rem-1.5rem)] bg-white rounded-none p-4 space-y-3.5 max-h-[85vh] overflow-y-auto z-10 shadow-2xl border border-gray-200/90">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="text-sm font-black uppercase tracking-wide">Isi Data Infak</h3>
-              <button onClick={() => setIsMobileFormOpen(false)} className="w-7 h-7 bg-gray-50 rounded-none text-gray-400 text-xs font-bold flex items-center justify-center border border-gray-100">✕</button>
+              <h3 className="text-xs font-bold text-slate-800">Form Infak / Zakat</h3>
+              <button 
+                onClick={() => setIsMobileFormOpen(false)} 
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1"
+              >
+                ✕
+              </button>
             </div>
             <DonationFormFields 
               donorName={donorName} setDonorName={setDonorName}
@@ -446,27 +499,77 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
         </div>
       )}
 
-      {/* MODAL REGISTER FUNDRAISER */}
-      {isFundraiserModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="absolute inset-0" onClick={() => setIsFundraiserModalOpen(false)} />
-          <div className="bg-white w-full max-w-sm rounded-none p-5 shadow-xl border border-gray-200 space-y-4 relative z-10 text-left">
-            <button onClick={() => setIsFundraiserModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
-            <div className="space-y-1">
-              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">Registrasi Fundraiser</h3>
-              <p className="text-[10px] font-medium text-gray-400">Bantu himpun dana gotong royong untuk program ini</p>
+      {/* 🚀 5. CUSTOM SHARE MODAL MOBILE-FIRST */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3">
+          <div className="absolute inset-0" onClick={() => setIsShareModalOpen(false)} />
+          <div className="relative w-[calc(100%-1.5rem)] max-w-[calc(28rem-1.5rem)] bg-white rounded-none p-4 space-y-4 z-10 shadow-2xl border border-gray-200/90 text-left">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Bagikan Program Kebaikan</h3>
+              <button 
+                onClick={() => setIsShareModalOpen(false)} 
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1"
+              >
+                ✕
+              </button>
             </div>
-            <form onSubmit={handleRegisterFundraiser} className="space-y-3.5 pt-1">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nama Lengkap</label>
-                <input type="text" required placeholder="Masukkan nama asli Anda" value={fundraiserData.name} onChange={(e) => setFundraiserData({ ...fundraiserData, name: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-none text-xs font-medium focus:outline-none focus:border-purple-600 focus:bg-white" />
+
+            {/* Input URL & Button Copy */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-slate-400 block">Tautan Program</label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={shareUrl} 
+                  className="flex-1 bg-slate-50 border border-gray-200 rounded-none px-2.5 py-2 text-xs font-mono text-slate-600 truncate focus:outline-none"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="bg-[#0d5c91] text-white px-3 py-2 text-xs font-semibold rounded-none shrink-0 flex items-center gap-1 hover:bg-sky-800 transition"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'Tersalin' : 'Salin'}</span>
+                </button>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nomor WhatsApp</label>
-                <input type="tel" required placeholder="Contoh: 08123456789" value={fundraiserData.phone} onChange={(e) => setFundraiserData({ ...fundraiserData, phone: e.target.value })} className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-none text-xs font-medium focus:outline-none focus:border-purple-600 focus:bg-white" />
-              </div>
-              <button type="submit" disabled={fundraiserSubmitting} className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-none text-xs uppercase tracking-widest transition duration-150 mt-1 shadow-sm">{fundraiserSubmitting ? 'Mengirim Data...' : 'Kirim Pengajuan 📢'}</button>
-            </form>
+            </div>
+
+            {/* Opsi Media Sosial */}
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Ayo bantu program kebaikan ini: ${program?.title || ''}\n${shareUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-2.5 bg-emerald-50 border border-emerald-100 text-emerald-700 space-y-1 hover:bg-emerald-100 transition"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-[10px] font-semibold">WhatsApp</span>
+              </a>
+
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-2.5 bg-blue-50 border border-blue-100 text-blue-700 space-y-1 hover:bg-blue-100 transition"
+              >
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                <span className="text-[10px] font-semibold">Facebook</span>
+              </a>
+
+              <a
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(program?.title || '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-2.5 bg-slate-100 border border-slate-200 text-slate-700 space-y-1 hover:bg-slate-200 transition"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                <span className="text-[10px] font-semibold">Twitter/X</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

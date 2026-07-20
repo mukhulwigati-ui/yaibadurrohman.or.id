@@ -5,22 +5,22 @@ import Link from 'next/link';
 import { PortableText } from '@portabletext/react';
 import RelatedNews from '@/components/RelatedNews';
 
-// Custom Serializer untuk PortableText agar kebal dari eror objek {_ref, _type} inside rich text
+// Custom Serializer untuk PortableText
 const portableTextComponents = {
   types: {
     image: ({ value }: any) => {
       if (!value?.asset?.url) return null;
       return (
-        <div className="my-6 space-y-2 w-full text-left">
-          <div className="rounded-none overflow-hidden bg-gray-50 border border-gray-100 shadow-sm aspect-[16/9] md:aspect-[21/9]">
+        <div className="my-4 space-y-1.5 w-full text-left">
+          <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-2xs aspect-[16/9]">
             <img 
               src={value.asset.url} 
-              alt={typeof value.alt === 'string' ? value.alt : 'Lazisku News Gambar'} 
+              alt={typeof value.alt === 'string' ? value.alt : 'Gambar Berita'} 
               className="w-full h-full object-cover"
             />
           </div>
           {value.caption && typeof value.caption === 'string' && (
-            <p className="text-[11px] text-gray-400 font-semibold text-center italic">
+            <p className="text-[10px] text-slate-400 font-normal text-center italic">
               {value.caption}
             </p>
           )}
@@ -38,7 +38,7 @@ const portableTextComponents = {
           href={hrefStr} 
           rel={rel} 
           target={target} 
-          className="text-emerald-600 font-bold hover:underline"
+          className="text-sky-600 font-medium hover:underline"
         >
           {children}
         </a>
@@ -68,11 +68,35 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
       });
   }, [slug]);
 
-  if (loading) return <div className="text-center py-20 text-gray-500 font-medium text-sm">Memuat artikel...</div>;
-  if (!data || !data.article) return <div className="text-center py-20 text-red-500 font-medium text-sm">Artikel tidak ditemukan gaes.</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100/70 pt-6 pb-24">
+        <div className="w-full max-w-md mx-auto px-3 space-y-3 animate-pulse">
+          <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto" />
+          <div className="aspect-[16/9] bg-gray-200 rounded-2xl w-full" />
+          <div className="space-y-2 pt-2">
+            <div className="h-4 bg-gray-200 rounded w-full" />
+            <div className="h-4 bg-gray-200 rounded w-full" />
+            <div className="h-4 bg-gray-200 rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const { article, sidebarCampaigns, allNews } = data;
-  
+  if (!data || !data.article) {
+    return (
+      <div className="min-h-screen bg-gray-100/70 pt-12 pb-24 text-center">
+        <p className="text-slate-500 text-sm font-normal">Artikel tidak ditemukan.</p>
+        <Link href="/blog" className="text-sky-600 text-xs font-semibold mt-3 inline-block">
+          ← Kembali ke Berita
+        </Link>
+      </div>
+    );
+  }
+
+  const { article, allNews } = data;
+
   const renderSafeString = (val: any, fallback: string = ''): string => {
     if (!val) return fallback;
     if (typeof val === 'string') return val;
@@ -85,133 +109,82 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }) + ' WIB'
-    : 'Kabar Terbaru';
+      })
+    : article?.timeAgo || 'Berita Terbaru';
 
   const categoryString = renderSafeString(article?.category, 'Kabar Terbaru');
   const titleString = renderSafeString(article?.title, 'Detail Berita');
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4 md:px-16">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <div className="min-h-screen bg-gray-100/70 pt-4 pb-24">
+      {/* 🚀 KUNCI LEBAR SAMA DENGAN CONTAINER HOME & LIST BERITA */}
+      <div className="w-full max-w-md mx-auto px-3 space-y-4">
         
-        {/* KOLOM KIRI: KONTEN UTAMA BERITA */}
-        <div className="lg:col-span-2 space-y-6 flex flex-col text-left">
+        {/* Card Utama Pembungkus Artikel */}
+        <article className="bg-white rounded-2xl p-4 shadow-2xs border border-gray-100/90 space-y-3.5">
           
-          {/* BREADCRUMBS */}
-          <nav className="w-full flex items-center flex-wrap gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-            <Link href="/" className="hover:text-emerald-600 shrink-0">Home</Link>
-            <span className="text-gray-300 shrink-0">/</span>
-            <Link href="/blog" className="hover:text-emerald-600 shrink-0">Kabar Berita</Link>
-            <span className="text-gray-300 shrink-0">/</span>
-            <span className="text-gray-600 truncate max-w-[180px] sm:max-w-[300px] md:max-w-[400px] normal-case">
-              {titleString}
-            </span>
+          {/* Breadcrumb Ringkas */}
+          <nav className="flex items-center gap-1.5 text-[11px] font-normal text-slate-400">
+            <Link href="/" className="hover:text-sky-600">Home</Link>
+            <span>/</span>
+            <Link href="/blog" className="hover:text-sky-600">Berita</Link>
           </nav>
 
-          {/* HEADLINE */}
-          <h1 className="text-2xl md:text-4xl font-extrabold text-[#333333] leading-tight tracking-tight block w-full mt-2">
+          {/* Judul Artikel (Warna Abu-Abu Lembut & Tidak Terlalu Tebal) */}
+          <h1 className="text-sm sm:text-base font-semibold text-slate-700 leading-snug tracking-normal">
             {titleString}
           </h1>
 
-          {/* Meta Data */}
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 border-b border-gray-100 pb-4 font-semibold w-full">
-            <span className="text-gray-700">Oleh: <strong className="text-emerald-600 font-black">Tim Media Lazisku</strong></span>
-            <span className="hidden sm:inline text-gray-300">•</span>
-            <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-none text-[10px] font-bold uppercase">
-              {categoryString}
-            </span>
-            <span className="text-gray-300">•</span>
+          {/* Waktu / Tanggal */}
+          <div className="text-[11px] font-normal text-slate-400 border-b border-gray-100 pb-2">
             <span>{formattedDate}</span>
           </div>
 
-          {/* Foto Utama Artikel */}
-          <div className="space-y-2 w-full">
-            <div className="rounded-none overflow-hidden bg-gray-100 aspect-[16/9] w-full shadow-sm border border-gray-200/60">
+          {/* Gambar Utama Artikel */}
+          <div className="space-y-1.5 w-full pt-1">
+            <div className="rounded-xl overflow-hidden bg-gray-100 aspect-[16/9] w-full border border-gray-100">
               <img 
                 src={typeof article?.imageUrl === 'string' ? article.imageUrl : '/images/placeholder.jpg'} 
                 alt={renderSafeString(article?.alt, titleString)} 
                 className="w-full h-full object-cover" 
               />
             </div>
-            <p className="text-[11px] text-gray-400 font-semibold text-center leading-relaxed max-w-2xl mx-auto">
-              Foto: {renderSafeString(article?.caption, `Dokumentasi Kegiatan ${titleString}`)}
-            </p>
-          </div>
-
-          {/* Isi Konten Utama Berita */}
-          <div className="text-gray-700 text-base leading-relaxed space-y-5 font-normal tracking-wide py-4 border-b border-gray-100 prose prose-emerald max-w-none w-full dynamic-portable-text">
-            {article?.content ? (
-              <PortableText value={article.content} components={portableTextComponents} />
-            ) : (
-              <p className="text-gray-400 italic">Isi berita belum diunggah dari Sanity Studio.</p>
+            {article?.caption && (
+              <p className="text-[10px] text-slate-400 font-normal text-center italic">
+                Foto: {renderSafeString(article.caption, '')}
+              </p>
             )}
           </div>
 
-          {/* Komponen Artikel Terkait */}
+          {/* Isi Konten Teks Artikel */}
+          <div className="text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3 font-normal pt-2 border-b border-gray-100 pb-4">
+            {article?.content ? (
+              <PortableText value={article.content} components={portableTextComponents} />
+            ) : (
+              <p className="text-slate-400 italic">Isi berita belum diunggah.</p>
+            )}
+          </div>
+
+          {/* Tombol Bagikan Ringkas */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[11px] text-slate-400 font-normal">Bagikan berita ini:</span>
+            <button 
+              onClick={() => alert('Link artikel berhasil disalin!')} 
+              className="px-3 py-1.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-600 text-slate-600 text-[11px] font-medium rounded-lg transition"
+            >
+              🔗 Salin Link
+            </button>
+          </div>
+
+        </article>
+
+        {/* Artikel Terkait */}
+        <div className="pt-2">
           <RelatedNews 
             currentSlug={slug} 
             category={categoryString} 
             allNews={allNews || []} 
           />
-
-          {/* Widget Share */}
-          <div className="flex items-center space-x-3 pt-2 w-full">
-            <span className="text-xs font-bold text-gray-400 uppercase">Bagikan:</span>
-            <button onClick={() => alert('Link berhasil disalin!')} className="px-4 py-2 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 text-gray-600 text-xs font-bold rounded-none transition">
-              🔗 Salin Tautan
-            </button>
-          </div>
-
-        </div>
-
-        {/* KOLOM KANAN: SIDEBAR REKOMENDASI DONASI */}
-        <div className="space-y-8 lg:sticky lg:top-24 h-fit text-left">
-          <div className="bg-gray-50 rounded-none p-5 border border-gray-100 shadow-sm space-y-4">
-            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-200 pb-2 flex items-center gap-1.5">
-              <span>🌟</span> Rekomendasi Kebaikan
-            </h3>
-            
-            <div className="space-y-3.5">
-              {sidebarCampaigns && sidebarCampaigns.map((program: any) => {
-                const pct = Math.min(Math.round((Number(program.collectedRaw || 0) / (Number(program.targetAmount) || 50000000)) * 100), 100);
-                const pSlug = renderSafeString(program.slug, '');
-                const pTitle = renderSafeString(program.title, 'Program Kebaikan');
-
-                return (
-                  <Link 
-                    href={`/campaign/${pSlug}`} 
-                    key={program.id || pSlug || Math.random()} 
-                    className="group block bg-white p-3.5 rounded-none border border-gray-200/60 shadow-inner shadow-gray-50 hover:border-emerald-500 transition-all duration-300"
-                  >
-                    <h4 className="text-xs font-bold text-gray-800 line-clamp-2 group-hover:text-emerald-600 transition">
-                      {pTitle}
-                    </h4>
-                    <div className="w-full bg-gray-100 h-1.5 rounded-none mt-3 overflow-hidden">
-                      <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-gray-400 font-bold mt-1.5">
-                      <span>TERCAPAI {pct}%</span>
-                      <span className="text-emerald-600">INFAK 🚀</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-3 px-2">
-            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">Topik Populer</h3>
-            <div className="flex flex-wrap gap-2">
-              {['Sedekah', 'Wakaf', 'Yatim', 'Banyumas', 'Pendidikan', 'Kemanusiaan'].map((tag) => (
-                <span key={tag} className="bg-white border border-gray-200 text-gray-500 text-[11px] font-semibold px-3 py-1.5 rounded-none shadow-sm hover:text-emerald-600 cursor-pointer transition">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
 
       </div>

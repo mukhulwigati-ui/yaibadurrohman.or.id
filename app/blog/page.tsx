@@ -8,17 +8,20 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🚀 FIXED: Menambahkan header cache level browser/client agar serasi dengan proteksi API Backend
-    fetch('/api/news', {
+    // 🚀 Fetch data berita dengan anti-cache header
+    fetch('/api/news?v=' + Date.now(), {
+      cache: 'no-store',
       headers: {
-        'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Accept: 'application/json',
       },
-      // Mengizinkan browser memanfaatkan cache Next.js yang sudah tersimpan di server
-      cache: 'default' 
     })
       .then((res) => res.json())
       .then((json) => {
-        if (json.success) setNewsList(json.data);
+        if (json.success && Array.isArray(json.data)) {
+          setNewsList(json.data);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -27,113 +30,68 @@ export default function BlogPage() {
       });
   }, []);
 
-  if (loading) return <div className="text-center py-20 text-gray-400 font-medium text-sm">Memuat kabar terbaru...</div>;
-  if (newsList.length === 0) return <div className="text-center py-20 text-gray-400 text-sm">Belum ada berita yang diterbitkan.</div>;
-
-  const heroPost = newsList[0];
-  const remainingPosts = newsList.slice(1);
-
   return (
-    <div className="min-h-screen bg-white pb-20">
-      
-      {/* ===================================================================
-          HERO SECTION: BERITA UTAMA (🚀 FIXED: max-w-5xl & px-4 md:px-16)
-          =================================================================== */}
-      <section className="px-4 md:px-16 py-10 bg-gray-50/60 border-b border-gray-100">
-        <div className="max-w-5xl mx-auto">
-          <Link href={`/blog/${heroPost.slug}`} className="group grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
-            {/* Visual Gambar Besar (Maksimal 7 Kolom Desktop) */}
-            <div className="lg:col-span-7">
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-md border border-gray-200/80 bg-gray-100">
-                <img 
-                  src={heroPost.image} 
-                  alt={heroPost.title} 
-                  className="w-full h-full object-cover group-hover:scale-[1.02] transition duration-500"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-emerald-600 text-white text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                    Headline
-                  </span>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-100/70 pt-6 pb-24">
+      <div className="w-full max-w-md mx-auto px-3 space-y-4">
+        {/* 🚀 Judul Bagian Atas: "Berita Terbaru" */}
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 text-center tracking-tight">
+          Berita Terbaru
+        </h1>
 
-            {/* Konten Teks Headline */}
-            <div className="lg:col-span-5 space-y-3.5">
-              <div className="space-y-1.5">
-                <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider block">
-                  {heroPost.category || 'Kabar Terbaru'}
-                </span>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-[#333333] leading-tight tracking-tight group-hover:text-emerald-600 transition-colors duration-300">
-                  {heroPost.title}
-                </h1>
-              </div>
-              <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed line-clamp-3">
-                Baca selengkapnya mengenai update aktivitas penyaluran amanah dan kabar perkembangan yayasan di lapangan...
-              </p>
-              <div className="flex items-center space-x-2 text-[11px] font-semibold text-gray-400 pt-1">
-                <span className="text-gray-600">Redaksi Wasilah</span>
-                <span>•</span>
-                <span>{heroPost.timeAgo}</span>
-              </div>
-            </div>
-
-          </Link>
-        </div>
-      </section>
-
-      {/* ===================================================================
-          GRID SECTION: DAFTAR BERITA LAINNYA (🚀 FIXED: max-w-5xl & px-4 md:px-16)
-          =================================================================== */}
-      <section className="px-4 md:px-16 py-12">
-        <div className="max-w-5xl mx-auto space-y-8">
-          
-          {/* Sub-Header */}
-          <div className="border-l-4 border-emerald-500 pl-4 py-0.5">
-            <h2 className="text-lg font-extrabold text-gray-800 uppercase tracking-wider">Informasi Terkini</h2>
-            <p className="text-gray-400 text-xs font-medium">Kumpulan laporan dan artikel edukasi dari yayasan</p>
-          </div>
-
-          {/* Grid Berita */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {remainingPosts.map((post) => (
-              <Link 
-                key={post.id} 
-                href={`/blog/${post.slug}`} 
-                className="group flex flex-col space-y-3 bg-white p-2 rounded-2xl border border-transparent hover:border-gray-100 hover:shadow-sm transition-all duration-300"
+        {loading ? (
+          /* Skeleton Loader */
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-3 shadow-2xs border border-gray-100 flex items-center gap-3.5 animate-pulse"
               >
-                {/* Thumbnail */}
-                <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                  <img 
-                    src={post.image} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                <div className="w-28 sm:w-32 h-20 bg-gray-200 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/3 pt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : newsList.length === 0 ? (
+          <div className="text-center py-20 text-slate-400 font-normal text-sm">
+            Belum ada berita yang diterbitkan.
+          </div>
+        ) : (
+          /* List Berita Mobile-Style (Presisi 1:1 Rujukan) */
+          <div className="space-y-3">
+            {newsList.map((post) => (
+              <Link
+                key={post.id || post.slug}
+                href={`/blog/${post.slug}`}
+                className="group bg-white rounded-2xl p-3 shadow-2xs border border-gray-100/90 hover:shadow-md transition-all duration-300 flex items-center gap-3.5"
+              >
+                {/* Thumbnail Gambar Kiri */}
+                <div className="relative w-28 sm:w-32 aspect-[16/10] rounded-xl overflow-hidden shrink-0 bg-gray-100">
+                  <img
+                    src={post.image || '/images/placeholder.jpg'}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute bottom-2.5 left-2.5">
-                    <span className="bg-white/95 backdrop-blur text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded shadow-sm uppercase">
-                      {post.category || 'Info'}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Info Teks */}
-                <div className="space-y-1.5 px-1 py-0.5">
-                  <h3 className="text-sm font-bold text-[#333333] leading-snug tracking-tight group-hover:text-emerald-600 transition-colors line-clamp-2">
+                {/* Detail Teks Judul & Tanggal Kanan */}
+                <div className="flex flex-col justify-between h-full flex-1 pr-1 py-0.5">
+                  {/* 🚀 FIXED: Font sedang (font-semibold), tinta abu-abu lembut (text-slate-700) */}
+                  <h2 className="text-xs sm:text-sm font-semibold text-slate-700 leading-snug tracking-normal line-clamp-2 group-hover:text-sky-600 transition-colors">
                     {post.title}
-                  </h3>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-0.5">
-                    <span>{post.timeAgo}</span>
-                    <span className="text-emerald-500 group-hover:translate-x-0.5 transition-transform">Baca ➔</span>
-                  </div>
+                  </h2>
+                  <span className="text-[11px] font-normal text-slate-400 mt-2.5">
+                    {post.dateLabel || post.timeAgo || 'Berita Terbaru'}
+                  </span>
                 </div>
               </Link>
             ))}
           </div>
-
-        </div>
-      </section>
-
+        )}
+      </div>
     </div>
   );
 }

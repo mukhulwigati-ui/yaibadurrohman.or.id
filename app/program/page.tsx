@@ -1,29 +1,49 @@
 // app/program/page.tsx
-// 🚀 FIXED: Menghapus 'use client' agar sinkron dengan dinamika data Sanity CMS secara real-time!
-
 import React from 'react';
+import { createClient } from '@sanity/client';
 import Campaign from '@/components/Campaign';
 
-// 🚀 JURUS SAKTI ANTI-CACHE: Memaksa Next.js mengambil data segar dari API Sanity setiap halaman diakses
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Fungsi pembantu untuk mengambil data langsung dari API internal secara aman di level Server
+// Inisialisasi Sanity Client di level server
+const serverClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '915u7hh1',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  useCdn: false,
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_TOKEN,
+});
+
 async function getProgramsData() {
   try {
-    // Memanggil API route programs lokal dengan menyuntikkan timestamp untuk mematikan cache di tingkat server cdn
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/programs?v=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      },
-    });
+    // 🚀 Fetch data program galang dana langsung dari Sanity di server
+    const data = await serverClient.fetch(
+      `*[_type in ["program", "campaign"] && active != false] | order(order asc, _createdAt desc) {
+        "id": _id,
+        "title": title,
+        "slug": slug.current,
+        "image": coalesce(mainImage.asset->url, image.asset->url, banner.asset->url),
+        "category": category,
+        "collectedRaw": coalesce(collected, 0),
+        "targetRaw": coalesce(targetAmount, 50000000),
+        "daysLeft": daysLeft
+      }`
+    );
 
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.success ? json.data : [];
+    if (Array.isArray(data)) {
+      return data.map((item: any) => ({
+        id: item.id || Math.random().toString(),
+        title: item.title,
+        slug: item.slug || '',
+        image: item.image || '/images/placeholder.jpg',
+        category: item.category || 'Kebaikan',
+        collectedRaw: item.collectedRaw,
+        targetRaw: item.targetRaw,
+        daysLeft: item.daysLeft || null,
+      }));
+    }
+    return [];
   } catch (error) {
     console.error('🔥 Server Fetch Error di Halaman Program:', error);
     return [];
@@ -31,33 +51,25 @@ async function getProgramsData() {
 }
 
 export default async function ProgramPage() {
-  // Mengambil data programs real-time langsung saat request masuk ke server
   const initialPrograms = await getProgramsData();
 
   return (
-    // 🚀 FIXED: Menyelaraskan md:px-12 menjadi md:px-16 agar presisi lurus simetris dengan halaman Home & Blog
-    <div className="min-h-screen bg-gray-50 px-4 md:px-16 py-12">
-      {/* 🚀 FIXED: Mengubah max-w-6xl menjadi max-w-5xl agar selaras 100% dengan Header & Footer */}
-      <div className="max-w-5xl mx-auto space-y-10">
+    <div className="min-h-screen bg-gray-100/70 pt-6 pb-24">
+      {/* 🚀 KUNCI FRAME MOBILE-FIRST (max-w-md mx-auto) */}
+      <div className="w-full max-w-md mx-auto px-3 space-y-4">
         
-        {/* ===================================================================
-            HEADER JUDUL HALAMAN (MINIMALIS & TEGAS)
-            =================================================================== */}
-        <div className="border-l-4 border-emerald-500 pl-6 py-1.5">
-          {/* Menyelaraskan warna ke abu-abu gelap #333333 khas Liputan6 agar senada dengan halaman lainnya */}
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#333333] tracking-tight">
+        {/* Header Judul Halaman Mobile */}
+        <div className="text-center space-y-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
             Semua Program Kebaikan
           </h1>
-          <p className="text-gray-500 mt-1 font-medium text-sm">
-            Jelajahi dan salurkan infak terbaik Anda secara instan amanah melalui QRIS terintegrasi
+          <p className="text-xs text-slate-400 font-normal">
+            Pilih dan tunaikan infak terbaik Anda secara instan & amanah
           </p>
         </div>
 
-        {/* ===================================================================
-            GRID COMPONENT: MENAMPILKAN CARDS & FITUR FILTERING DATA REAL-TIME
-            =================================================================== */}
-        <div className="bg-transparent">
-          {/* 🚀 FIXED: Mengirimkan data segar dari server ke dalam komponen Client <Campaign /> */}
+        {/* List Card Program */}
+        <div className="pt-2">
           <Campaign initialData={initialPrograms} />
         </div>
 

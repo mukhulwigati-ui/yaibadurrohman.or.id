@@ -19,23 +19,29 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
       return;
     }
 
+    let isMounted = true;
+
     fetch('/api/programs?v=' + Date.now(), {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       },
     })
       .then((res) => res.json())
       .then((json) => {
-        if (json.success) setPrograms(json.data);
-        setLoading(false);
+        if (isMounted && json.success) setPrograms(json.data);
+        if (isMounted) setLoading(false);
       })
       .catch((err) => {
         console.error('Campaign component fetch error:', err);
-        setLoading(false);
+        if (isMounted) setLoading(false);
       });
-  }, [initialData]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // 🚀 Anti-looping dependency array []
 
   if (loading) {
     return (
@@ -46,9 +52,7 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
   }
 
   return (
-    // 🚀 CONTAINER UTAMA LANCIP (ROUNDED-NONE)
     <div className="w-full max-w-md mx-auto bg-white rounded-none p-4 shadow-2xs border border-gray-200/90 space-y-3">
-      
       {/* 1. HEADER SECTION */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -95,7 +99,7 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
                       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />
                     
-                    {/* Badge Sisa Hari (Lancip) */}
+                    {/* Badge Sisa Hari */}
                     <span className="absolute top-0 left-0 bg-sky-900/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-none shadow-2xs">
                       {program.daysLeft ? `${program.daysLeft} hari lagi` : 'Mendesak'}
                     </span>
@@ -122,7 +126,6 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
 
                 {/* Progress Bar & Total Terkumpul */}
                 <div className="p-2.5 pt-2 space-y-1.5">
-                  {/* Progress Bar Line */}
                   <div className="w-full bg-gray-100 h-1.5 rounded-none overflow-hidden">
                     <div
                       className="bg-sky-600 h-full rounded-none transition-all duration-500"
@@ -130,7 +133,6 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
                     />
                   </div>
 
-                  {/* Nominal Terkumpul */}
                   <p className="text-[11px] text-gray-500 font-medium">
                     Terkumpul :{' '}
                     <span className="font-bold text-sky-600">
@@ -143,7 +145,6 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
           })}
         </div>
       )}
-
     </div>
   );
 }

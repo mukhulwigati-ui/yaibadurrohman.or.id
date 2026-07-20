@@ -2,12 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell } from 'lucide-react';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
+
+  // 🚀 SEMBUNYIKAN HEADER UTAMA SAAT BERADA DI HALAMAN DETAIL CAMPAIGN
+  // Ini mencegah header double dengan DetailHeader (tombol Back & Share)
+  if (pathname.startsWith('/campaign/')) {
+    return null;
+  }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,10 +24,8 @@ export default function Header() {
   };
 
   return (
-    // 🚀 HEADER BIRU COMPACT (APP-LIKE)
-    <header className="sticky top-0 z-50 w-full bg-sky-800 text-white shadow-md">
-      
-      {/* Container utama dikunci di max-w-md / max-w-lg agar pas sejajar dengan konten app di bawahnya */}
+    <header className="sticky top-0 z-50 w-full bg-[#0d5c91] text-white shadow-md">
+      {/* Container utama dikunci di max-w-md agar sejajar presisi dengan konten app mobile */}
       <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between gap-3">
         
         {/* 1. Logo Yayasan */}
@@ -56,7 +61,7 @@ export default function Header() {
         >
           <Bell className="w-5 h-5 stroke-[2]" />
           {/* Badge Titik Merah Notifikasi */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-sky-800 animate-pulse" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0d5c91] animate-pulse" />
         </Link>
 
       </div>
