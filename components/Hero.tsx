@@ -5,87 +5,108 @@ import Link from 'next/link';
 
 export default function Hero() {
   return (
-    // 🚀 CONTAINER UTAMA: Desain Full-Width Center yang Bersih, Megah & Futuristik
-    <section className="relative w-full min-h-[95vh] flex items-center justify-center bg-gray-950 overflow-hidden shrink-0 pb-24 pt-32 md:pt-20">
+    // 🚀 CONTAINER UTAMA
+    <section className="relative w-full flex items-center justify-center bg-slate-900 overflow-hidden shrink-0 py-10 md:py-14">
       
-      {/* 1. Background Dokumentasi: Terang, Berwarna Asli & Tampak Jelas */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-45 scale-105 transition-transform duration-1000"
-        style={{ 
-          backgroundImage: "url('/images/hero-bg.png')",
-          filter: 'contrast(105%)'
-        }}
-      />
-
-      {/* 2. Cyberpunk Tech Grid Layout */}
-      <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#37415115_1px,transparent_1px),linear-gradient(to_bottom,#37415115_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,#000_75%,transparent_100%)]" />
-      
-      {/* Aurora Ambient Glow Terpusat di Belakang Teks */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[140px] z-10 animate-pulse duration-[4000ms]" />
-
-      {/* 3. Overlay Gradasi Gelap Dinamis: Menjaga Kontras Tengah Namun Membiarkan Gambar Sisi Luar Menyala */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-b from-gray-950/80 via-gray-950/50 to-gray-950" />
-      <div className="absolute inset-0 z-10 bg-radial-gradient from-transparent to-gray-950/40" />
-
-      {/* 4. Konten Utama Terpusat (Max-w-5xl agar Fokus Baca Nyaman) */}
-      <div className="relative z-20 max-w-5xl mx-auto px-6 md:px-12 w-full text-center flex flex-col items-center">
-        
-        {/* Tagline Yayasan dengan Aksen Border Tech */}
-        <div className="inline-flex items-center gap-2 mb-8 bg-emerald-950/50 border border-emerald-500/30 px-4 py-2 rounded shadow-[0_0_20px_rgba(16,185,129,0.05)]">
-          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
-          <span className="text-[10px] md:text-xs font-black tracking-widest text-emerald-400 uppercase">
-            Yayasan Khoiro Ummah Bina Umat
-          </span>
-        </div>
-
-        {/* Headline Utama: Kokoh, Padat & Berkarakter */}
-        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase leading-[1.05] mb-8 max-w-4xl">
-          FROM BATTLING CRISIS TO <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 drop-shadow-[0_0_25px_rgba(52,211,153,0.35)] normal-case font-medium italic inline-block mt-2 font-serif tracking-normal">
-            Spreading Hope
-          </span>
-        </h1>
-
-        {/* Deskripsi Pendek Pendukung */}
-        <p className="text-gray-100 text-sm md:text-lg mb-12 max-w-3xl leading-relaxed tracking-wide font-normal drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-          Salurkan bantuan terbaik Anda secara transparan, amanah, dan instan menggunakan QRIS. Setiap rupiah yang Anda donasikan adalah jembatan masa depan bagi sesama.
-        </p>
-
-        {/* Tombol CTA Premium Action Button */}
-        <Link
-          href="/program"
-          className="group relative inline-flex items-center justify-center gap-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-black text-xs uppercase tracking-widest px-10 py-5 rounded shadow-xl shadow-emerald-950/60 border border-emerald-400/30 overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20"
-        >
-          {/* Efek Kilatan Garis Cahaya Saat Hover */}
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-          
-          <span className="relative z-10 flex items-center gap-2">
-            ★ Donasi Sekarang
-          </span>
-          <svg 
-            className="w-4 h-4 transition-transform duration-300 ease-out group-hover:translate-x-1 relative z-10" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="3" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+      {/* 1. BACKGROUND ORNAMEN CHARITY & FILANTROPI */}
+      <div className="absolute inset-0 z-0 opacity-15 pointer-events-none">
+        <svg className="w-full h-full text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+          <defs>
+            <pattern id="charity-pattern" width="120" height="120" patternUnits="userSpaceOnUse">
+              <path d="M20 15 C20 10, 25 5, 30 10 C35 5, 40 10, 40 15 C40 22, 30 28, 30 28 C30 28, 20 22, 20 15 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M70 45 C65 45, 60 50, 60 55 C60 60, 75 65, 80 45 C70 45 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="90" cy="20" r="2" fill="currentColor" />
+              <circle cx="15" cy="80" r="3" fill="currentColor" />
+              <path d="M100 85 L102 90 L107 92 L102 94 L100 99 L98 94 L93 92 L98 90 Z" fill="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#charity-pattern)" />
+        </svg>
       </div>
 
-      {/* 5. DEKORASI BATAS BAWAH: Potongan Kurva Putih Presisi Mulus */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] z-30 pointer-events-none">
-        <svg 
-          className="relative block w-full h-[45px] md:h-[75px]" 
-          viewBox="0 0 1200 120" 
-          preserveAspectRatio="none"
-        >
-          <path 
-            d="M0,0 C300,95 900,15 1200,65 L1200,120 L0,120 Z" 
-            className="fill-white"
-          />
-        </svg>
+      {/* Ambient Glow Lingkaran Belakang */}
+      <div className="absolute top-1/2 -right-20 -translate-y-1/2 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[90px] z-0" />
+
+      {/* 2. KONTEN UTAMA: Grid Layout (Max-Width Presisi 1080px) */}
+      <div className="relative z-20 max-w-[1080px] mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        
+        {/* === KOLOM KIRI: GAMBAR (7 KOLOM) === */}
+        <div className="lg:col-span-7 w-full flex justify-start order-2 lg:order-1">
+          <div className="relative w-full max-w-[480px] aspect-[16/9] rounded-xl overflow-hidden p-1 bg-gradient-to-b from-emerald-400/40 via-emerald-500/20 to-emerald-500/5 border border-emerald-400/40 shadow-xl shadow-emerald-950/80 group">
+            
+            {/* Frame Dalam Foto */}
+            <div className="relative w-full h-full rounded-lg overflow-hidden bg-gray-900">
+              <div 
+                className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                style={{ 
+                  backgroundImage: "url('/images/hero-bg.jpeg')",
+                }}
+              />
+              
+              {/* Soft overlay tipis di bawah foto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950/70 via-transparent to-transparent" />
+              
+              {/* Badge Keterangan Foto */}
+              <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-white/10 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                <p className="text-[10px] sm:text-xs text-gray-200 font-medium tracking-wide truncate">
+                  Tim Field Fundraiser Yayasan Islam Ibadurrohman
+                </p>
+              </div>
+            </div>
+
+            {/* Aksen Hiasan Sudut Frame */}
+            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr-md" />
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-md" />
+          </div>
+        </div>
+
+        {/* === KOLOM KANAN: TEKS (5 KOLOM) === */}
+        <div className="lg:col-span-5 text-left flex flex-col items-start order-1 lg:order-2">
+          
+          {/* Tagline Yayasan */}
+          <div className="inline-flex items-center gap-2 mb-3 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full shadow-md backdrop-blur-md">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+            <span className="text-[10px] font-bold tracking-widest text-emerald-300 uppercase">
+              Yayasan Islam Ibadurrohman Cilacap
+            </span>
+          </div>
+
+          {/* Headline Utama */}
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white uppercase leading-[1.2] mb-3">
+            SIAP MENYAMPAIKAN AMANAH, <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 normal-case font-bold inline-block mt-0.5">
+              Menebar Harapan Sesama
+            </span>
+          </h1>
+
+          {/* Deskripsi */}
+          <p className="text-gray-300 text-xs sm:text-sm mb-5 max-w-sm leading-relaxed font-normal">
+            Bersama tim fundraiser yang berdedikasi, kami pastikan donasi Anda sampai ke tangan yang tepat. Mudah, transparan, dan cepat via QRIS.
+          </p>
+
+          {/* Tombol CTA */}
+          <Link
+            href="/program"
+            className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-lg shadow-emerald-950/50 border border-emerald-400/40 overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+            
+            <span className="relative z-10 flex items-center gap-2">
+              Donasi via QRIS Sekarang
+            </span>
+            <svg 
+              className="w-3.5 h-3.5 transition-transform duration-300 ease-out group-hover:translate-x-1 relative z-10" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="3" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+
       </div>
 
     </section>
