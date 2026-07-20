@@ -1,9 +1,11 @@
+// components/Header.tsx
 'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,16 +55,8 @@ export default function Header() {
           </div>
         </form>
 
-        {/* 3. Ikon Lonceng Notifikasi */}
-        <Link 
-          href="/notifikasi" 
-          className="relative text-white/90 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors shrink-0"
-          aria-label="Notifikasi"
-        >
-          <Bell className="w-5 h-5 stroke-[2]" />
-          {/* Badge Titik Merah Notifikasi */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0d5c91] animate-pulse" />
-        </Link>
+        {/* 3. Komponen Dropdown Notifikasi Canggih (Menggantikan ikon statis) */}
+        <NotificationDropdown />
 
       </div>
     </header>

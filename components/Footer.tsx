@@ -13,7 +13,7 @@ export default function Footer() {
         <Link href="/syarat-ketentuan" className="hover:text-sky-600 transition-colors">
           Terms of Service
         </Link>
-        <Link href="/kebijakan-pengembalian" className="hover:text-sky-600 transition-colors">
+        <Link href="/bantuan" className="hover:text-sky-600 transition-colors">
           Refund Policy
         </Link>
       </div>

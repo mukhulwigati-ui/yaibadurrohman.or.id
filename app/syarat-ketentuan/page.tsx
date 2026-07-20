@@ -5,9 +5,9 @@ import Link from 'next/link';
 
 // 🚀 OPTIMASI SEO MASTER
 export const metadata: Metadata = {
-  title: 'Syarat & Ketentuan | LAZIS Khoiro Ummah',
-  description: 'Syarat dan ketentuan resmi penggunaan platform layanan donasi online LAZIS Khoiro Ummah (lazisku.com). Pelajari panduan hak, kewajiban donatur, dan mekanisme penyaluran dana Ziswaf.',
-  keywords: ['syarat ketentuan lazisku', 'regulasi donasi online', 'kebijakan amil zakat', 'panduan infak banyumas'],
+  title: 'Syarat & Ketentuan | yaibadurrohman.or.id',
+  description: 'Syarat dan ketentuan resmi penggunaan platform layanan digital yaibadurrohman.or.id. Pelajari panduan hak, kewajiban pengguna, dan mekanisme operasional.',
+  keywords: ['syarat ketentuan yaibadurrohman', 'regulasi online', 'kebijakan', 'panduan'],
   alternates: {
     canonical: '/syarat-ketentuan',
   },
@@ -15,75 +15,76 @@ export const metadata: Metadata = {
 
 export default function SyaratKetentuanPage() {
   return (
-    <div className="min-h-screen bg-white py-12 px-4 md:px-16">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-50 py-4 px-3 pb-24">
+      {/* 🚀 MODEL MOBILE FIRST: Disesuaikan dengan lebar card mobile yang ringkas, rapi, dan konsisten */}
+      <div className="w-full max-w-sm mx-auto bg-white border border-slate-200 shadow-sm p-4 space-y-4">
         
         {/* HEADLINE UTAMA */}
-        <div className="border-b-2 border-emerald-600 pb-4 space-y-2">
-          <span className="text-xs font-black text-emerald-600 uppercase tracking-widest block">
+        <div className="border-b border-sky-600 pb-2.5 space-y-1">
+          <span className="text-[9px] font-bold text-sky-600 uppercase tracking-widest block">
             DOKUMEN REGULASI RESMI
           </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[#333333] tracking-tight">
+          <h1 className="text-xl font-extrabold text-[#333333] tracking-tight">
             Syarat & Ketentuan Penggunaan
           </h1>
-          <p className="text-xs text-gray-400 font-medium">
+          <p className="text-[10px] text-slate-400 font-medium">
             Terakhir diperbarui: Juli 2026
           </p>
         </div>
 
         {/* ISI KONTEN HUKUM / REGULASI */}
-        <div className="text-gray-700 text-sm md:text-base leading-relaxed space-y-6 text-left">
+        <div className="text-slate-700 text-xs leading-relaxed space-y-3.5 text-left">
           <p>
-            Selamat datang di platform digital resmi <strong>LAZIS Khoiro Ummah (lazisku.com)</strong>. Sebelum Anda melanjutkan proses transaksi infak, zakat, maupun sedekah, mohon luangkan waktu sejenak untuk membaca dan memahami seluruh Syarat & Ketentuan yang berlaku di bawah ini.
+            Selamat datang di platform digital resmi <strong>yaibadurrohman.or.id</strong>. Sebelum Anda melanjutkan proses penggunaan layanan, mohon luangkan waktu sejenak untuk membaca dan memahami seluruh Syarat & Ketentuan yang berlaku di bawah ini.
           </p>
           <p>
-            Dengan mengakses, menggunakan, atau melakukan transaksi donasi di dalam platform ini, Anda dianggap telah membaca, memahami, dan menyetujui untuk mengikatkan diri pada seluruh aturan regulasi hukum yang ditetapkan oleh pengelola lembaga.
+            Dengan mengakses, menggunakan, atau melakukan interaksi di dalam platform ini, Anda dianggap telah membaca, memahami, dan menyetujui untuk mengikatkan diri pada seluruh aturan regulasi yang ditetapkan oleh pengelola.
           </p>
 
           {/* BARIS POIN-POIN REGULASI */}
-          <div className="space-y-6 pt-4">
+          <div className="space-y-3.5 pt-1">
             
-            {/* 1. Ketentuan Donatur */}
-            <div className="space-y-2">
-              <h2 className="text-base font-black text-gray-950 uppercase tracking-wide flex items-center gap-2">
-                <span className="text-emerald-600">01.</span> Ketentuan Donatur / Muzakki
+            {/* 1. Ketentuan Pengguna */}
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                <span className="text-sky-600">01.</span> Ketentuan Pengguna
               </h2>
-              <ul className="list-disc list-inside pl-4 text-xs md:text-sm text-gray-600 space-y-1.5">
-                <li>Donatur wajib berusia minimal 17 tahun atau memiliki legalitas hukum dalam melakukan transaksi keuangan mandiri.</li>
-                <li>Donatur menjamin bahwa dana infak atau zakat yang disalurkan bersumber dari aset yang halal, sah secara hukum, dan tidak berasal dari tindakan kriminal/pencucian uang.</li>
-                <li>Pengisian data Nomor WhatsApp opsional namun sangat disarankan demi kelancaran pengiriman notifikasi status transaksi dari sistem API.</li>
+              <ul className="list-disc list-inside pl-3 text-[11px] text-slate-600 space-y-0.5">
+                <li>Pengguna wajib mematuhi seluruh norma dan ketentuan hukum yang berlaku di wilayah hukum terkait.</li>
+                <li>Pengguna menjamin bahwa segala data atau informasi yang disalurkan melalui platform bersumber dari hal yang sah, benar, dan tidak melanggar hukum.</li>
+                <li>Pengisian data kontak atau nomor WhatsApp digunakan demi kelancaran pengiriman notifikasi sistem secara optimal.</li>
               </ul>
             </div>
 
-            {/* 2. Mekanisme Pembayaran */}
-            <div className="space-y-2">
-              <h2 className="text-base font-black text-gray-950 uppercase tracking-wide flex items-center gap-2">
-                <span className="text-emerald-600">02.</span> Mekanisme Transaksi & Pembayaran Gateway
+            {/* 2. Mekanisme & Transaksi */}
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                <span className="text-sky-600">02.</span> Mekanisme Layanan & Transaksi
               </h2>
-              <ul className="list-disc list-inside pl-4 text-xs md:text-sm text-gray-600 space-y-1.5">
-                <li>Seluruh pemrosesan pembayaran instan (QRIS maupun Virtual Account) dijembatani secara sah via sistem integrasi API Gateway Pakasir.</li>
-                <li>Nominal donasi minimal yang ditetapkan oleh platform demi efisiensi operasional sistem adalah sebesar <strong>Rp 10.000</strong> per transaksi.</li>
-                <li>Setiap transaksi yang statusnya telah dinyatakan berhasil oleh sistem pembayaran bersifat mutlak, final, dan tidak dapat dibatalkan atau ditarik kembali (*non-refundable*).</li>
+              <ul className="list-disc list-inside pl-3 text-[11px] text-slate-600 space-y-0.5">
+                <li>Seluruh pemrosesan sistem atau transaksi digital didukung penuh oleh infrastruktur teknologi dan integrasi sistem yang aman.</li>
+                <li>Ketentuan nominal minimal atau ketentuan teknis layanan disesuaikan dengan standar operasional platform yang berlaku.</li>
+                <li>Setiap aktivitas atau transaksi yang statusnya telah dinyatakan berhasil oleh sistem memiliki ketentuan final sesuai regulasi sistem.</li>
               </ul>
             </div>
 
-            {/* 3. Pengelolaan & Penyaluran Dana */}
-            <div className="space-y-2">
-              <h2 className="text-base font-black text-gray-950 uppercase tracking-wide flex items-center gap-2">
-                <span className="text-emerald-600">03.</span> Pengelolaan & Penyaluran Dana Kebaikan
+            {/* 3. Pengelolaan & Penyaluran */}
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                <span className="text-sky-600">03.</span> Pengelolaan & Kebijakan Platform
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 pl-4">
-                LAZIS Khoiro Ummah memegang hak penuh dalam mengelola amil serta menyalurkan dana yang terhimpun ke target sasaran mustahik, program kebaikan Al-Quran, maupun dhuafa secara produktif berdasarkan prinsip prioritas kemaslahatan syariah, keabsahan fiqih, serta manajemen operasional lembaga yang akuntabel.
+              <p className="text-[11px] text-slate-600 pl-3">
+                Pengelola yaibadurrohman.or.id memiliki hak penuh dalam mengelola, mengatur, serta mengoptimalkan jalannya program maupun fitur layanan berdasarkan prinsip prioritas kemaslahatan, akuntabilitas, dan manajemen operasional yang transparan.
               </p>
             </div>
 
             {/* 4. Keamanan Data */}
-            <div className="space-y-2">
-              <h2 className="text-base font-black text-gray-950 uppercase tracking-wide flex items-center gap-2">
-                <span className="text-emerald-600">04.</span> Perlindungan Data Pribadi
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                <span className="text-sky-600">04.</span> Perlindungan Data Pribadi
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 pl-4">
-                Kami berkomitmen menjaga kerahasiaan data pribadi seperti nama, nomor kontak, serta histori log donasi yang tersimpan di dalam database CMS Sanity kami. Data tersebut tidak akan pernah diperjualbelikan kepada pihak ketiga di luar kebutuhan pemrosesan invoice transaksi donasi Anda.
+              <p className="text-[11px] text-slate-600 pl-3">
+                Kami berkomitmen menjaga kerahasiaan data pribadi seperti nama, nomor kontak, serta histori log aktivitas yang tersimpan di dalam database sistem kami, serta tidak akan memperjualbelikannya kepada pihak ketiga di luar keperluan sistem.
               </p>
             </div>
 
@@ -91,20 +92,20 @@ export default function SyaratKetentuanPage() {
         </div>
 
         {/* SECTION FOOTER CALL TO ACTION */}
-        <div className="bg-gray-50 border border-gray-100 p-6 text-center rounded-none space-y-3.5 mt-8">
-          <p className="text-xs text-gray-500 font-medium leading-relaxed max-w-xl mx-auto">
-            Miliki kendala teknis atau pertanyaan lebih lanjut terkait interpretasi pasal-pasal regulasi penggunaan di atas? Silakan hubungi pusat bantuan admin kami.
+        <div className="bg-slate-50 border border-slate-200 p-3 text-center rounded-lg space-y-2.5 mt-4">
+          <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
+            Memiliki kendala teknis atau pertanyaan lebih lanjut terkait interpretasi regulasi penggunaan di atas? Silakan hubungi pusat bantuan admin kami.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 pt-1">
+          <div className="flex flex-col gap-2 pt-0.5">
             <Link 
               href="/kontak"
-              className="inline-block border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-black text-xs uppercase tracking-widest px-6 py-3 rounded-none transition"
+              className="w-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-[10px] uppercase tracking-wider py-2 rounded-md transition"
             >
               Hubungi Admin ✉️
             </Link>
             <Link 
               href="/"
-              className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-none transition shadow-md shadow-emerald-100"
+              className="w-full bg-[#0d5c91] hover:bg-sky-900 text-white font-bold text-[10px] uppercase tracking-wider py-2 rounded-md transition shadow-sm"
             >
               Kembali ke Beranda 🚀
             </Link>
