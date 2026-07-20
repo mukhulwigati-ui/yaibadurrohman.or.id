@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { CheckCircle2, ChevronRight } from 'lucide-react';
 
 interface CampaignProps {
   initialData?: any[];
@@ -10,9 +11,6 @@ interface CampaignProps {
 export default function Campaign({ initialData = [] }: CampaignProps) {
   const [programs, setPrograms] = useState<any[]>(initialData.length > 0 ? initialData : []);
   const [loading, setLoading] = useState(initialData.length === 0);
-  
-  const [selectedCategory, setSelectedCategory] = useState('SEMUA');
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (initialData.length > 0) {
@@ -25,8 +23,8 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
+        'Pragma': 'no-cache',
+      },
     })
       .then((res) => res.json())
       .then((json) => {
@@ -39,123 +37,110 @@ export default function Campaign({ initialData = [] }: CampaignProps) {
       });
   }, [initialData]);
 
-  // 🚀 DINAMIS: Mengekstrak semua kategori yang unik secara otomatis dari data Sanity
-  const avaibleCategories = React.useMemo(() => {
-    const categories = new Set<string>();
-    programs.forEach((p) => {
-      if (p.category) {
-        // Normalisasi teks menjadi UPPERCASE agar pencocokan filter tidak meleset
-        categories.add(p.category.trim().toUpperCase());
-      }
-    });
-    return ['SEMUA', ...Array.from(categories)];
-  }, [programs]);
-
   if (loading) {
-    return <div className="text-center py-16 text-gray-500 font-medium text-xs tracking-wider">MEMUAT PROGRAM KEBAIKAN...</div>;
+    return (
+      <div className="w-full max-w-md mx-auto px-2 py-10 text-center text-xs text-gray-400 font-bold tracking-wider animate-pulse">
+        MEMUAT PROGRAM KEBAIKAN...
+      </div>
+    );
   }
 
-  // PROSES FILTERING DATA
-  const filteredPrograms = programs.filter((program) => {
-    const matchesCategory = 
-      selectedCategory === 'SEMUA' || 
-      program.category?.toUpperCase() === selectedCategory;
-    
-    const matchesSearch = program.title?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesSearch;
-  });
-
   return (
-    <div className="space-y-6">
+    // 🚀 CONTAINER UTAMA LANCIP (ROUNDED-NONE)
+    <div className="w-full max-w-md mx-auto bg-white rounded-none p-4 shadow-2xs border border-gray-200/90 space-y-3">
       
-      {/* ===================================================================
-          BARIS FILTER KATEGORI DINAMIS & SEARCH BAR (DESAIN BERSIH SLIM)
-          =================================================================== */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full border-b border-gray-100 pb-4">
-        
-        {/* Navigasi Filter Kategori Dinamis (Render Otomatis Dari Sanity) */}
-        <div className="flex flex-wrap items-center gap-2">
-          {avaibleCategories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2.5 rounded-none text-[11px] font-bold uppercase tracking-wider transition-all border ${
-                selectedCategory === category
-                  ? 'bg-emerald-600 text-white border-emerald-600 font-black'
-                  : 'bg-white text-gray-400 hover:text-emerald-600 border-gray-200'
-              }`}
-            >
-              {category === 'SEMUA' ? 'Semua' : category}
-            </button>
-          ))}
+      {/* 1. HEADER SECTION */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight leading-snug">
+            Penggalangan Dana Mendesak
+          </h2>
+          <p className="text-[11px] text-gray-500 font-normal mt-0.5">
+            Pilih program yang berarti bagi Anda dan Mereka
+          </p>
         </div>
 
-        {/* Input Box Pencarian Minimalis */}
-        <div className="relative max-w-xs w-full">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="Cari galang dana..."
-            className="w-full bg-white border border-gray-200 text-xs font-bold text-gray-700 pl-9 pr-4 py-2.5 rounded-none placeholder-gray-400 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
+        <Link
+          href="/program"
+          className="inline-flex items-center gap-0.5 bg-sky-100 hover:bg-sky-200 text-sky-600 text-xs font-semibold px-3 py-1.5 rounded-none shrink-0 transition-colors"
+        >
+          Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
-      {/* ===================================================================
-          GRID LAYOUT CARD CAMPAIGN GALANG DANA (SUDUT SIKU MODERN)
-          =================================================================== */}
-      {filteredPrograms.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-none border border-gray-100 text-gray-400 text-xs font-bold uppercase tracking-wider">
-          Tidak ditemukan program galang dana yang cocok.
+      {/* 2. HORIZONTAL SCROLL CARD CAROUSEL */}
+      {programs.length === 0 ? (
+        <div className="text-center py-8 text-gray-400 text-xs font-medium">
+          Belum ada program galang dana aktif.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredPrograms.map((program) => (
-            <div key={program.id || program._id} className="bg-white rounded-none p-4 shadow-xs border border-gray-100 flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div>
-                {/* Gambar Campaign Dinamis */}
-                <div className="relative h-40 w-full rounded-none overflow-hidden bg-gray-50 border-b border-gray-100">
-                  <img src={program.image} alt={program.title} className="object-cover w-full h-full transition duration-500" />
-                  <span className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[9px] font-black px-2 py-0.5 rounded-none uppercase tracking-wide">
-                    {program.category}
-                  </span>
+        <div className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar scroll-smooth">
+          {programs.map((program) => {
+            const collectedNum = Number(program.collectedRaw || 0);
+            const targetNum = Number(program.targetRaw || 1);
+            const percentage = Math.min(Math.round((collectedNum / targetNum) * 100), 100);
+
+            return (
+              <Link
+                key={program.id || program._id}
+                href={`/campaign/${program.slug}`}
+                className="w-[185px] sm:w-[200px] bg-white border border-gray-200/90 rounded-none overflow-hidden shadow-2xs shrink-0 flex flex-col justify-between group hover:border-sky-300 transition-all duration-300"
+              >
+                <div>
+                  {/* Gambar + Badge Sisa Hari */}
+                  <div className="relative h-28 w-full bg-gray-100 overflow-hidden">
+                    <img
+                      src={program.image}
+                      alt={program.title}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                    
+                    {/* Badge Sisa Hari (Lancip) */}
+                    <span className="absolute top-0 left-0 bg-sky-900/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-none shadow-2xs">
+                      {program.daysLeft ? `${program.daysLeft} hari lagi` : 'Mendesak'}
+                    </span>
+                  </div>
+
+                  {/* Info Penggalang Dana */}
+                  <div className="p-2.5 pb-0">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <div className="w-4 h-4 rounded-full bg-sky-600 text-white flex items-center justify-center text-[8px] font-bold shrink-0">
+                        SA
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-700 truncate">
+                        Super Admin
+                      </span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 fill-sky-500/20 shrink-0" />
+                    </div>
+
+                    {/* Judul Campaign */}
+                    <h3 className="font-bold text-gray-900 text-xs leading-snug line-clamp-2 min-h-[2rem]">
+                      {program.title}
+                    </h3>
+                  </div>
                 </div>
 
-                {/* Judul Campaign */}
-                <h2 className="font-black text-gray-800 mt-3 text-sm uppercase leading-snug line-clamp-2 min-h-[2.5rem] tracking-tight">
-                  {program.title}
-                </h2>
-                
-                {/* Status Dana Terkumpul */}
-                <div className="flex justify-between text-[10px] text-gray-400 font-bold mt-4 border-t border-gray-50 pt-3">
-                  <div>
-                    <p className="uppercase tracking-wider">Terkumpul</p>
-                    <p className="font-black text-emerald-600 text-xs mt-0.5">{program.collected}</p>
+                {/* Progress Bar & Total Terkumpul */}
+                <div className="p-2.5 pt-2 space-y-1.5">
+                  {/* Progress Bar Line */}
+                  <div className="w-full bg-gray-100 h-1.5 rounded-none overflow-hidden">
+                    <div
+                      className="bg-sky-600 h-full rounded-none transition-all duration-500"
+                      style={{ width: `${percentage || 10}%` }}
+                    />
                   </div>
-                  <div className="text-right">
-                    <p className="uppercase tracking-wider">Target</p>
-                    <p className="font-black text-gray-700 text-xs mt-0.5">{program.target}</p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Tombol Aksi Menuju Detail */}
-              <div className="mt-4 pt-3 border-t border-gray-50">
-                <Link
-                  href={`/campaign/${program.slug}`}
-                  className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-none transition text-[10px] uppercase tracking-widest shadow-xs"
-                >
-                  Infak Sekarang ➔
-                </Link>
-              </div>
-            </div>
-          ))}
+                  {/* Nominal Terkumpul */}
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    Terkumpul :{' '}
+                    <span className="font-bold text-sky-600">
+                      {program.collected || `Rp${collectedNum.toLocaleString('id-ID')}`}
+                    </span>
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 

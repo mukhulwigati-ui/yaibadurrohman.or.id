@@ -1,114 +1,200 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { createClient } from '@sanity/client';
+
+// 🚀 INITIALIZE SANITY CLIENT (useCdn: false untuk menghindari CORS error)
+const client = createClient({
+  projectId: '61d8vnuq',
+  dataset: 'production',
+  useCdn: false,
+  apiVersion: '2024-01-01',
+});
+
+interface HeroBanner {
+  _id: string;
+  title?: string;
+  imageUrl: string;
+  linkUrl?: string;
+}
+
+// 🚀 FALLBACK BANNER DEFAULT (Jika data di Sanity belum diinput)
+const DEFAULT_BANNERS: HeroBanner[] = [
+  {
+    _id: 'default-1',
+    title: 'Mau Harta Bertambah dan Berkah - Jangan Berat Untuk Berzakat',
+    imageUrl: 'https://images.unsplash.com/photo-1532629345422-7515fe926fb8?q=80&w=800&auto=format&fit=crop',
+    linkUrl: '/program?cat=zakat',
+  },
+  {
+    _id: 'default-2',
+    title: 'Sedekah Subuh Pembuka Pintu Rezeki',
+    imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop',
+    linkUrl: '/program?cat=sedekah-subuh',
+  },
+  {
+    _id: 'default-3',
+    title: 'Tunaikan Infaq Produktif Untuk Ummat',
+    imageUrl: 'https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=800&auto=format&fit=crop',
+    linkUrl: '/program?cat=infaq',
+  },
+];
 
 export default function Hero() {
+  const [banners, setBanners] = useState<HeroBanner[]>(DEFAULT_BANNERS);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Menu Kategori Quick Links Static
+  const categories = [
+    { name: 'Zakat', icon: '🤲', href: '/program?cat=zakat' },
+    { name: 'Infaq', icon: '💸', href: '/program?cat=infaq' },
+    { name: 'Sedekah Subuh', icon: '🌅', href: '/program?cat=sedekah-subuh' },
+    { name: 'Fidyah', icon: '🌾', href: '/program?cat=fidyah' },
+    { name: 'Wakaf', icon: '🌱', href: '/program?cat=wakaf' },
+    { name: 'ORTA', icon: '👨‍👩‍👧', href: '/program?cat=orta' },
+    { name: 'Sedekah Jumat', icon: '🕌', href: '/program?cat=sedekah-jumat' },
+    { name: 'Lainnya', icon: '☰', href: '/program' },
+  ];
+
+  // 1. Fetch Data Slider dari Sanity Schema "heroBanner"
+  useEffect(() => {
+    async function fetchHeroBanners() {
+      try {
+        // Query GROQ presisi mengarah ke document heroBanner
+        const query = `*[_type == "heroBanner" && active == true] | order(order asc, _createdAt desc)[0...10] {
+          "id": _id,
+          title,
+          "imageUrl": image.asset->url,
+          "linkUrl": link
+        }`;
+
+        const data = await client.fetch(query);
+
+        const validBanners = Array.isArray(data)
+          ? data.filter((item: any) => item && item.imageUrl)
+          : [];
+
+        if (validBanners.length > 0) {
+          setBanners(
+            validBanners.map((item: any) => ({
+              _id: item.id || Math.random().toString(),
+              title: item.title,
+              imageUrl: item.imageUrl,
+              linkUrl: item.linkUrl || undefined,
+            }))
+          );
+        }
+      } catch (err) {
+        console.warn('⚠️ Gagal mengambil banner dari Sanity, menggunakan default fallback:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchHeroBanners();
+  }, []);
+
+  // 2. Auto Slider Effect (Berganti setiap 3.5 detik)
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [banners]);
+
   return (
-    // 🚀 CONTAINER UTAMA
-    <section className="relative w-full flex items-center justify-center bg-slate-900 overflow-hidden shrink-0 py-10 md:py-14">
-      
-      {/* 1. BACKGROUND ORNAMEN CHARITY & FILANTROPI */}
-      <div className="absolute inset-0 z-0 opacity-15 pointer-events-none">
-        <svg className="w-full h-full text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-          <defs>
-            <pattern id="charity-pattern" width="120" height="120" patternUnits="userSpaceOnUse">
-              <path d="M20 15 C20 10, 25 5, 30 10 C35 5, 40 10, 40 15 C40 22, 30 28, 30 28 C30 28, 20 22, 20 15 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M70 45 C65 45, 60 50, 60 55 C60 60, 75 65, 80 45 C70 45 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="90" cy="20" r="2" fill="currentColor" />
-              <circle cx="15" cy="80" r="3" fill="currentColor" />
-              <path d="M100 85 L102 90 L107 92 L102 94 L100 99 L98 94 L93 92 L98 90 Z" fill="currentColor" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#charity-pattern)" />
-        </svg>
-      </div>
-
-      {/* Ambient Glow Lingkaran Belakang */}
-      <div className="absolute top-1/2 -right-20 -translate-y-1/2 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[90px] z-0" />
-
-      {/* 2. KONTEN UTAMA: Grid Layout (Max-Width Presisi 1080px) */}
-      <div className="relative z-20 max-w-[1080px] mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        
-        {/* === KOLOM KIRI: GAMBAR (7 KOLOM) === */}
-        <div className="lg:col-span-7 w-full flex justify-start order-2 lg:order-1">
-          <div className="relative w-full max-w-[480px] aspect-[16/9] rounded-xl overflow-hidden p-1 bg-gradient-to-b from-emerald-400/40 via-emerald-500/20 to-emerald-500/5 border border-emerald-400/40 shadow-xl shadow-emerald-950/80 group">
-            
-            {/* Frame Dalam Foto */}
-            <div className="relative w-full h-full rounded-lg overflow-hidden bg-gray-900">
-              <div 
-                className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                style={{ 
-                  backgroundImage: "url('/images/hero-bg.jpeg')",
-                }}
-              />
-              
-              {/* Soft overlay tipis di bawah foto */}
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-950/70 via-transparent to-transparent" />
-              
-              {/* Badge Keterangan Foto */}
-              <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-white/10 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
-                <p className="text-[10px] sm:text-xs text-gray-200 font-medium tracking-wide truncate">
-                  Tim Field Fundraiser Yayasan Islam Ibadurrohman
-                </p>
-              </div>
+    <div className="w-full max-w-md mx-auto bg-white border border-gray-200/90 shadow-xs rounded-none overflow-hidden p-3 space-y-4">
+      {/* 1. HERO BANNER CAROUSEL AREA */}
+      <div>
+        <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden rounded-none border border-gray-100 shadow-2xs">
+          {loading ? (
+            /* Skeleton Loader */
+            <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+              <span className="text-xs text-gray-400 font-medium">Memuat Banner...</span>
             </div>
-
-            {/* Aksen Hiasan Sudut Frame */}
-            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr-md" />
-            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-md" />
-          </div>
+          ) : (
+            /* Banner Murni (Presisi 1:1 donasionline.id) */
+            banners.map((banner, index) => {
+              const isActive = index === currentIndex;
+              return (
+                <div
+                  key={banner._id || index}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                  }`}
+                >
+                  {banner.linkUrl ? (
+                    <Link href={banner.linkUrl} className="block w-full h-full relative">
+                      <Image
+                        src={banner.imageUrl}
+                        alt={banner.title || 'Hero Banner'}
+                        fill
+                        className="object-cover object-center"
+                        unoptimized
+                      />
+                    </Link>
+                  ) : (
+                    <Image
+                      src={banner.imageUrl}
+                      alt={banner.title || 'Hero Banner'}
+                      fill
+                      className="object-cover object-center"
+                      unoptimized
+                    />
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
 
-        {/* === KOLOM KANAN: TEKS (5 KOLOM) === */}
-        <div className="lg:col-span-5 text-left flex flex-col items-start order-1 lg:order-2">
-          
-          {/* Tagline Yayasan */}
-          <div className="inline-flex items-center gap-2 mb-3 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full shadow-md backdrop-blur-md">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
-            <span className="text-[10px] font-bold tracking-widest text-emerald-300 uppercase">
-              Yayasan Islam Ibadurrohman Cilacap
-            </span>
+        {/* Dynamic Dots Indicator (Kapsul Biru Terang untuk Slide Aktif) */}
+        {!loading && banners.length > 1 && (
+          <div className="flex justify-center items-center gap-1.5 mt-3">
+            {banners.map((_, idx) => {
+              const isActive = idx === currentIndex;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`transition-all duration-300 ${
+                    isActive
+                      ? 'w-6 h-1.5 bg-sky-500 rounded-full'
+                      : 'w-1.5 h-1.5 bg-sky-200 hover:bg-sky-400 rounded-full'
+                  }`}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              );
+            })}
           </div>
-
-          {/* Headline Utama */}
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white uppercase leading-[1.2] mb-3">
-            SIAP MENYAMPAIKAN AMANAH, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 normal-case font-bold inline-block mt-0.5">
-              Menebar Harapan Sesama
-            </span>
-          </h1>
-
-          {/* Deskripsi */}
-          <p className="text-gray-300 text-xs sm:text-sm mb-5 max-w-sm leading-relaxed font-normal">
-            Bersama tim fundraiser yang berdedikasi, kami pastikan donasi Anda sampai ke tangan yang tepat. Mudah, transparan, dan cepat via QRIS.
-          </p>
-
-          {/* Tombol CTA */}
-          <Link
-            href="/program"
-            className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-lg shadow-emerald-950/50 border border-emerald-400/40 overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95"
-          >
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-            
-            <span className="relative z-10 flex items-center gap-2">
-              Donasi via QRIS Sekarang
-            </span>
-            <svg 
-              className="w-3.5 h-3.5 transition-transform duration-300 ease-out group-hover:translate-x-1 relative z-10" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="3" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </Link>
-        </div>
-
+        )}
       </div>
 
-    </section>
+      {/* 2. MENU KATEGORI PROGRAM */}
+      <div className="pt-1 pb-2">
+        <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 mb-3 tracking-tight">
+          Raih Keberkahan Dihari Ini!
+        </h3>
+
+        <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 text-center">
+          {categories.map((cat, index) => (
+            <Link key={index} href={cat.href} className="group flex flex-col items-center">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center text-lg sm:text-xl transition-transform group-hover:scale-105 group-active:scale-95">
+                {cat.icon}
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600">
+                {cat.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

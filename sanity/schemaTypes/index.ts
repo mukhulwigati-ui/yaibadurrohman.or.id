@@ -1,11 +1,11 @@
 // schemas/index.ts
 import program from './program';           // File skema program donasi Anda
-import news from './news';                 // Skema kabar berita
-import category from './category';         // Skema kategori artikel/berita
+import news from './news';                  // Skema kabar berita
+import category from './category';          // Skema kategori artikel/berita
 import donationTransaction from './donationTransaction'; // Penampung data transaksi pending (Nama & WA)
 import laporan from './laporan';           // Skema laporan yayasan
-// 🚀 FIXED: Mengimpor skema pendaftaran fundraiser yang baru dibuat
-import fundraiser from './fundraiser'; 
+import fundraiser from './fundraiser';      // Skema pendaftaran fundraiser
+import heroBanner from './slider';          // 🚀 Skema hero banner slider
 
 export const schemaTypes = [
   program,
@@ -13,6 +13,6 @@ export const schemaTypes = [
   category, 
   news,      
   donationTransaction,
-  // 🚀 FIXED: Didaftarkan ke dalam array agar aktif di dashboard & API Sanity Studio
-  fundraiser
+  fundraiser,
+  heroBanner, // 🚀 Didaftarkan ke dalam array agar aktif di Sanity Studio
 ];

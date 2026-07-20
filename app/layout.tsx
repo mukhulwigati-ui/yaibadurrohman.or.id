@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { createClient } from "@sanity/client";
 import LayoutClientWrapper from "@/components/LayoutClientWrapper";
-import LiveDonationNotification, { Donation } from "@/components/LiveDonationNotification";
+import { Donation } from "@/components/LiveDonationNotification";
+import BottomNav from "@/components/BottomNav"; // 🚀 Import BottomNav Global
 import "./globals.css";
 
 const geistSans = Geist({
@@ -133,10 +134,6 @@ export default async function RootLayout({
           timeLabel = `${Math.floor(diffMins / 60)} jam yang lalu`;
         }
 
-        // 🚀 LOGIKA AMBIL PROGRAM ASLI:
-        // 1. Pakai judul dari relasi Sanity jika ada.
-        // 2. Jika relasi kosong, format dari field slug transaksi (misal: "sedekah-subuh" -> "Sedekah Subuh").
-        // 3. Fallback terakhir ke "Sedekah".
         let displayProgram = item.program;
 
         if (!displayProgram && item.slug) {
@@ -171,15 +168,16 @@ export default async function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-screen bg-gray-50 flex flex-col text-gray-800" suppressHydrationWarning>
+      <body className="min-h-screen bg-gray-100 flex flex-col text-gray-800" suppressHydrationWarning>
         
-        {/* 🚀 POP-UP NOTIFICATION: Mengoper data asli yang diambil langsung dari server */}
-        <LiveDonationNotification donations={dynamicDonations} />
-
-        {/* 🚀 LAYOUT CLIENT WRAPPER */}
-        <LayoutClientWrapper>
+        {/* 🚀 OPER DATA DONASI KE LAYOUT CLIENT WRAPPER */}
+        {/* LiveDonationNotification akan dipanggil di dalam wrapper tersebut sehingga terikat kualifikasi !isStudioPage */}
+        <LayoutClientWrapper donations={dynamicDonations}>
           {children}
         </LayoutClientWrapper>
+
+        {/* 🚀 GLOBAL BOTTOM NAVIGATION */}
+        <BottomNav />
 
       </body>
     </html>

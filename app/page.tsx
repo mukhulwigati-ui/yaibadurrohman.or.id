@@ -2,86 +2,75 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Hero from '@/components/Hero';
-import TotalAccumulationWidget from '@/components/TotalAccumulationWidget'; // 🚀 BARU: Mengimpor widget akumulasi real-time
+import TotalAccumulationWidget from '@/components/TotalAccumulationWidget';
 import Campaign from '@/components/Campaign';
 import News from '@/components/News';
+import Footer from '@/components/Footer';
 
 // ===================================================================
-// 🌐 CONFIG METADATA OPEN GRAPH & TWITTER (ANTI-KOSONG DI MEDSOS)
+// 🌐 CONFIG METADATA OPEN GRAPH & TWITTER (YAYASAN ISLAM IBADURROHMAN)
 // ===================================================================
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yaibadurrohman.or.id';
 
 export const metadata: Metadata = {
-  title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
-  description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
+  title: 'Yayasan Islam Ibadurrohman | Platform Sedekah, Infaq & Zakat Online',
+  description: 'Siap menyampaikan amanah, menebar harapan sesama. Salurkan sedekah subuh, infaq, dan zakat secara transparan melalui yaibadurrohman.or.id.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
-    description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
+    title: 'Yayasan Islam Ibadurrohman | Platform Sedekah & Donasi Online',
+    description: 'Siap menyampaikan amanah, menebar harapan sesama. Salurkan sedekah subuh, infaq, dan zakat secara transparan melalui yaibadurrohman.or.id.',
     url: `${siteUrl}/`,
-    siteName: 'LAZIS Khoiro Ummah',
+    siteName: 'Yayasan Islam Ibadurrohman',
     locale: 'id_ID',
     type: 'website',
     images: [
       {
-        url: `${siteUrl}/images/banner-utama.png`, // 🚀 Banner utama beresolusi 1200x630 untuk pratinjau medsos
+        url: `${siteUrl}/images/hero-bg.png`,
         width: 1200,
         height: 630,
-        alt: 'LAZIS Khoiro Ummah',
+        alt: 'Yayasan Islam Ibadurrohman',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LAZIS Khoiro Ummah | Platform Sedekah, Infaq & Zakat Online Amanah',
-    description: 'Tunaikan kepedulian Anda dengan mudah. Salurkan sedekah subuh, infaq, dan zakat secara transparan dan amanah melalui lazisku.com.',
-    images: [`${siteUrl}/images/banner-utama.png`],
+    title: 'Yayasan Islam Ibadurrohman | Platform Sedekah & Donasi Online',
+    description: 'Siap menyampaikan amanah, menebar harapan sesama. Salurkan sedekah subuh, infaq, dan zakat secara transparan melalui yaibadurrohman.or.id.',
+    images: [`${siteUrl}/images/hero-bg.png`],
   },
 };
 
-// 🚀 JURUS SAKTI ANTI-CACHE: Memaksa Next.js untuk selalu mengambil data paling segar dari API Sanity saat halaman diakses!
+// 🚀 ANTI-CACHE: Memaksa Next.js selalu render data real-time terbaru
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   return (
-    <>
-      {/* 1. Hero Section (Layar Utama Atas dengan Call to Action) */}
-      <Hero />
+    <main className="min-h-screen bg-gray-100 flex flex-col items-center justify-start w-full overflow-x-hidden pb-16">
       
-      {/* 2. 🚀 BARU: Widget Akumulasi Dana Real-Time diletakkan strategis di bawah Hero */}
-      <TotalAccumulationWidget />
-      
-      {/* 3. Container Area Konten Utama */}
-      {/* 🚀 FIXED: Menyelaraskan md:px-12 menjadi md:px-16 agar presisi lurus bergaris dengan Header, Footer, dan halaman list berita */}
-      <div className="min-h-screen bg-gray-50 px-4 md:px-16 py-12">
-        <div className="max-w-5xl mx-auto space-y-16">
-          
-          {/* ===================================================================
-              SEKSI 1: PROGRAM GALANG DANA (LENGKAP DENGAN FILTER & REAL-TIME SEARCH)
-              =================================================================== */}
-          <div className="space-y-6">
-            <div className="border-l-4 border-emerald-500 pl-6 py-1">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#333333] tracking-tight">
-                Program Galang Dana
-              </h2>
-              <p className="text-gray-500 mt-1 font-medium text-sm">
-                Salurkan infak terbaik Anda untuk berbagai sektor kebaikan
-              </p>
-            </div>
-            
-            {/* Memanggil komponen grid campaign ter-filter */}
-            <Campaign />
-          </div>
+      {/* 🚀 CONTAINER UTAMA MOBILE APP */}
+      <div className="w-full max-w-md mx-auto px-3 py-3 space-y-3">
+        
+        {/* 1. Hero / Banner Component */}
+        <Hero />
+        
+        {/* 2. Widget Akumulasi Statistik Real-Time */}
+        <TotalAccumulationWidget />
 
-          {/* ===================================================================
-              SEKSI 2: KABAR & INFORMASI TERBARU YAYASAN (GRID 4 KOLOM MINIMALIS)
-              =================================================================== */}
-          <News />
+        {/* 3. Program Galang Dana */}
+        <Campaign />
 
-        </div>
+        {/* 4. Kabar & Berita Terbaru */}
+        <News />
+
+        {/* 5. Tautan Legal (Privacy Policy, Terms, Refund) */}
+        <Footer />
+
       </div>
-    </>
+
+      {/* ⚠️ BottomNav SUDAH DIPANGGIL DI layout.tsx, JADI TIDAK PERLU DIPANGGIL LAGI DI SINI */}
+
+    </main>
   );
 }
