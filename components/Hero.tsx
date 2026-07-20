@@ -3,24 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { createClient } from '@sanity/client';
 
-// 🚀 INITIALIZE SANITY CLIENT (useCdn: false untuk menghindari CORS error)
-const client = createClient({
-  projectId: '61d8vnuq',
-  dataset: 'production',
-  useCdn: false,
-  apiVersion: '2024-01-01',
-});
-
-interface HeroBanner {
+export interface HeroBanner {
   _id: string;
   title?: string;
   imageUrl: string;
   linkUrl?: string;
 }
 
-// 🚀 FALLBACK BANNER DEFAULT (Jika data di Sanity belum diinput)
 const DEFAULT_BANNERS: HeroBanner[] = [
   {
     _id: 'default-1',
@@ -42,12 +32,15 @@ const DEFAULT_BANNERS: HeroBanner[] = [
   },
 ];
 
-export default function Hero() {
-  const [banners, setBanners] = useState<HeroBanner[]>(DEFAULT_BANNERS);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+interface HeroProps {
+  initialBanners?: HeroBanner[];
+}
 
-  // Menu Kategori Quick Links Static
+export default function Hero({ initialBanners = [] }: HeroProps) {
+  // Gunakan data dari Sanity jika ada, jika tidak gunakan default fallback
+  const banners = initialBanners.length > 0 ? initialBanners : DEFAULT_BANNERS;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const categories = [
     { name: 'Zakat', icon: '🤲', href: '/program?cat=zakat' },
     { name: 'Infaq', icon: '💸', href: '/program?cat=infaq' },
@@ -59,45 +52,7 @@ export default function Hero() {
     { name: 'Lainnya', icon: '☰', href: '/program' },
   ];
 
-  // 1. Fetch Data Slider dari Sanity Schema "heroBanner"
-  useEffect(() => {
-    async function fetchHeroBanners() {
-      try {
-        // Query GROQ presisi mengarah ke document heroBanner
-        const query = `*[_type == "heroBanner" && active == true] | order(order asc, _createdAt desc)[0...10] {
-          "id": _id,
-          title,
-          "imageUrl": image.asset->url,
-          "linkUrl": link
-        }`;
-
-        const data = await client.fetch(query);
-
-        const validBanners = Array.isArray(data)
-          ? data.filter((item: any) => item && item.imageUrl)
-          : [];
-
-        if (validBanners.length > 0) {
-          setBanners(
-            validBanners.map((item: any) => ({
-              _id: item.id || Math.random().toString(),
-              title: item.title,
-              imageUrl: item.imageUrl,
-              linkUrl: item.linkUrl || undefined,
-            }))
-          );
-        }
-      } catch (err) {
-        console.warn('⚠️ Gagal mengambil banner dari Sanity, menggunakan default fallback:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchHeroBanners();
-  }, []);
-
-  // 2. Auto Slider Effect (Berganti setiap 3.5 detik)
+  // Auto Slider Effect
   useEffect(() => {
     if (banners.length <= 1) return;
 
@@ -106,40 +61,24 @@ export default function Hero() {
     }, 3500);
 
     return () => clearInterval(timer);
-  }, [banners]);
+  }, [banners.length]);
 
   return (
     <div className="w-full max-w-md mx-auto bg-white border border-gray-200/90 shadow-xs rounded-none overflow-hidden p-3 space-y-4">
       {/* 1. HERO BANNER CAROUSEL AREA */}
       <div>
         <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden rounded-none border border-gray-100 shadow-2xs">
-          {loading ? (
-            /* Skeleton Loader */
-            <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <span className="text-xs text-gray-400 font-medium">Memuat Banner...</span>
-            </div>
-          ) : (
-            /* Banner Murni (Presisi 1:1 donasionline.id) */
-            banners.map((banner, index) => {
-              const isActive = index === currentIndex;
-              return (
-                <div
-                  key={banner._id || index}
-                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                    isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                  }`}
-                >
-                  {banner.linkUrl ? (
-                    <Link href={banner.linkUrl} className="block w-full h-full relative">
-                      <Image
-                        src={banner.imageUrl}
-                        alt={banner.title || 'Hero Banner'}
-                        fill
-                        className="object-cover object-center"
-                        unoptimized
-                      />
-                    </Link>
-                  ) : (
+          {banners.map((banner, index) => {
+            const isActive = index === currentIndex;
+            return (
+              <div
+                key={banner._id || index}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
+              >
+                {banner.linkUrl ? (
+                  <Link href={banner.linkUrl} className="block w-full h-full relative">
                     <Image
                       src={banner.imageUrl}
                       alt={banner.title || 'Hero Banner'}
@@ -147,15 +86,23 @@ export default function Hero() {
                       className="object-cover object-center"
                       unoptimized
                     />
-                  )}
-                </div>
-              );
-            })
-          )}
+                  </Link>
+                ) : (
+                  <Image
+                    src={banner.imageUrl}
+                    alt={banner.title || 'Hero Banner'}
+                    fill
+                    className="object-cover object-center"
+                    unoptimized
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Dynamic Dots Indicator (Kapsul Biru Terang untuk Slide Aktif) */}
-        {!loading && banners.length > 1 && (
+        {/* Dynamic Dots Indicator */}
+        {banners.length > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-3">
             {banners.map((_, idx) => {
               const isActive = idx === currentIndex;
