@@ -1,5 +1,5 @@
 // components/LayoutClientWrapper.tsx
-'use client'; // 🚀 Client Component untuk mengontrol tampilan kondisional halaman public vs Sanity Studio
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -15,21 +15,25 @@ interface LayoutClientWrapperProps {
 export default function LayoutClientWrapper({ children, donations = [] }: LayoutClientWrapperProps) {
   const pathname = usePathname();
 
-  // 🚀 Cek apakah halaman yang dibuka adalah Dashboard Sanity Studio atau bukan Homepage
   const isStudioPage = pathname?.startsWith('/studio');
   const isHomePage = pathname === '/';
 
-  // --- STATE & LOGIKA PWA PROMPT ---
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   
-  // 🚀 STATE BARU: Melacak apakah user sudah menekan tombol close pada sesi ini
+  // Melacak apakah user sudah menutup prompt pada sesi ini
   const [hasClosedPrompt, setHasClosedPrompt] = useState(false);
 
   useEffect(() => {
-    // PWA hanya aktif di homepage, bukan di studio, dan jika belum di-close oleh user pada sesi ini
+    // Cek apakah di sesi ini user sudah pernah menutup PWA prompt
+    const closedInSession = sessionStorage.getItem('pwa_prompt_closed');
+    if (closedInSession === 'true') {
+      setHasClosedPrompt(true);
+      return;
+    }
+
     if (!isHomePage || isStudioPage || hasClosedPrompt) {
       setShowPrompt(false);
       return;
@@ -39,25 +43,32 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIOSDevice);
 
-    // 🚀 Timer 5 detik untuk iOS
+    const checkAndShow = () => {
+      // Pastikan modal lain (seperti Portal Fundraiser / Modal Donatur) TIDAK sedang terbuka di DOM
+      const activeModals = document.querySelectorAll('.fixed.inset-0.z-50');
+      
+      // Jika tidak ada modal lain yang aktif dan user belum close, tampilkan prompt PWA
+      if (activeModals.length === 0 && !hasClosedPrompt) {
+        setShowPrompt(true);
+      } else {
+        // Jika ada modal lain, tunda pengecekan berikutnya
+        setTimeout(checkAndShow, 1000);
+      }
+    };
+
     if (isIOSDevice) {
       const timer = setTimeout(() => {
-        if (!hasClosedPrompt) {
-          setShowPrompt(true);
-        }
+        checkAndShow();
       }, 5000);
       return () => clearTimeout(timer);
     }
 
-    // Event listener untuk Android / Desktop dengan jeda 5 detik setelah prompt tersedia
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       
       const timer = setTimeout(() => {
-        if (!hasClosedPrompt) {
-          setShowPrompt(true);
-        }
+        checkAndShow();
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -87,17 +98,19 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
     setDeferredPrompt(null);
     setShowPrompt(false);
     setHasClosedPrompt(true);
+    sessionStorage.setItem('pwa_prompt_closed', 'true');
   };
 
   const handleClose = () => {
     setShowPrompt(false);
     setShowIOSGuide(false);
-    setHasClosedPrompt(true); // 🚀 Menandai bahwa prompt sudah ditutup, sehingga tidak akan muncul lagi sebelum halaman direfresh
+    setHasClosedPrompt(true);
+    // Simpan ke sessionStorage agar tidak muncul lagi sebelum halaman direfresh / sesi baru
+    sessionStorage.setItem('pwa_prompt_closed', 'true');
   };
 
   return (
     <>
-      {/* 1. Header & Live Donation Notification HANYA dirender di luar Sanity Studio */}
       {!isStudioPage && (
         <>
           <Header />
@@ -105,17 +118,15 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
         </>
       )}
       
-      {/* 2. Konten Utama Halaman Website / Studio */}
       <main className="flex-grow">
         {children}
       </main>
 
-      {/* 3. MODAL PWA PROMPT (Hanya muncul di Homepage setelah detik ke-5 & belum di-close) */}
+      {/* MODAL PWA PROMPT */}
       {isHomePage && !isStudioPage && showPrompt && !hasClosedPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-xs bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 text-center space-y-4">
             
-            {/* Tombol Close (X) */}
             <button
               onClick={handleClose}
               className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition"
