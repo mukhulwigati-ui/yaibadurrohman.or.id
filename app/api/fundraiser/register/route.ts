@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, phone, programId } = body;
+    const { name, phone } = body;
 
     // 2. Validasi kelengkapan data formulir beserta pesan detailnya
     if (!name || !name.trim()) {
@@ -24,9 +24,6 @@ export async function POST(request: Request) {
     if (!phone || !phone.trim()) {
       return NextResponse.json({ success: false, message: 'Nomor WhatsApp wajib diisi.' }, { status: 400 });
     }
-    if (!programId) {
-      return NextResponse.json({ success: false, message: 'ID Program tidak terdeteksi di sistem.' }, { status: 400 });
-    }
 
     // 3. Normalisasi nomor WhatsApp ke format standar internasional
     let formattedPhone = phone.replace(/[^0-9]/g, '');
@@ -34,26 +31,37 @@ export async function POST(request: Request) {
       formattedPhone = '62' + formattedPhone.slice(1);
     }
 
-    // 4. Operasi pembuatan dokumen baru di Sanity Studio
+    // 4. Cek apakah nomor WhatsApp sudah terdaftar sebelumnya di Sanity
+    const existingFundraiser = await client.fetch(
+      `*[_type == "fundraiser" && phone == $phone][0]`,
+      { phone: formattedPhone }
+    );
+
+    if (existingFundraiser) {
+      return NextResponse.json(
+        { success: false, message: 'Nomor WhatsApp ini sudah terdaftar sebagai fundraiser.' }, 
+        { status: 400 }
+      );
+    }
+
+    // 5. Operasi pembuatan dokumen baru di Sanity Studio dengan status 'pending'
     const newFundraiser = await client.create({
       _type: 'fundraiser',
       name: name.trim(),
       phone: formattedPhone,
-      program: {
-        _type: 'reference',
-        _ref: programId, // Mengaitkan relasi dokumen ke program target
-      },
-      status: 'pending', // Status awal saat mendaftar
+      status: 'pending', // Menunggu persetujuan admin terlebih dahulu
     });
 
-    // 5. Integrasi Pengiriman Pesan WhatsApp via Fonnte (Opsional)
+    // 6. Integrasi Pengiriman Pesan WhatsApp via Fonnte (Notifikasi Pengajuan & Panduan Statistik)
     if (process.env.FONNTE_TOKEN) {
       const messageText = 
-        `*Pendaftaran Fundraiser Lazisku* 📢\n\n` +
-        `Halo *${name.trim()}*,\n` +
-        `Terima kasih telah mengajukan diri sebagai fundraiser.\n\n` +
-        `Data pendaftaran Anda telah kami terima dan saat ini sedang ditinjau oleh tim admin LAZIS Khoiro Ummah. Kami akan mengirimkan notifikasi lanjutan jika tautan performa afiliasi Anda telah diaktifkan.\n\n` +
-        `Jazakumullah Khairan Katsiran.`;
+        `*Pendaftaran Fundraiser yaibadurrohman.or.id* 📢\n\n` +
+        `Assalamu'alaikum *${name.trim()}*,\n\n` +
+        `Alhamdulillah, pengajuan Anda sebagai fundraiser telah kami terima dan sedang ditinjau oleh admin.\n\n` +
+        `Yuk, ambil tautan afiliasi unik Anda dan pantau perolehan donasi secara transparan melalui halaman resmi berikut:\n` +
+        `👉 https://www.yaibadurrohman.or.id/fundraiser/stats\n\n` +
+        `Cukup masukkan nomor WhatsApp Anda (${formattedPhone}) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur setelah akun di-approve.\n\n` +
+        `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
 
       await fetch('https://api.fonnte.com/send', {
         method: 'POST',
@@ -67,7 +75,6 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('🔥 Gagal mendaftarkan fundraiser di backend:', error);
     
-    // 🚀 FIXED: Menjamin respons balik selalu menyertakan teks string string pada properti message
     return NextResponse.json(
       { 
         success: false, 
