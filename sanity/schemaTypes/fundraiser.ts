@@ -19,7 +19,7 @@ export default defineType({
     }),
     
     // ===================================================================
-    // 🚀 FIXED: ARRAY OF REFERENCES (Mendukung Banyak Program)
+    // 🚀 ARRAY OF REFERENCES (Mendukung Banyak Program)
     // ===================================================================
     defineField({
       name: 'supportedPrograms',
@@ -41,6 +41,7 @@ export default defineType({
         ],
       },
       initialValue: 'pending',
+      validation: (Rule) => Rule.required(),
     }),
 
     // ===================================================================
@@ -80,11 +81,24 @@ export default defineType({
       validation: (Rule) => Rule.min(0).integer(),
     }),
   ],
-  // 💡 Menambahkan preview agar mudah dilihat di list Sanity Studio
+
+  // 💡 Menambahkan preview agar mudah dilihat di list Sanity Studio beserta indikator statusnya
   preview: {
     select: {
       title: 'name',
       subtitle: 'status',
-    }
-  }
+      phone: 'phone',
+    },
+    prepare({ title, subtitle, phone }) {
+      const statusMap: Record<string, string> = {
+        pending: '⏳ Pending Approval',
+        approved: '✅ Disetujui (Aktif)',
+        rejected: '❌ Ditolak',
+      };
+      return {
+        title: title || 'Tanpa Nama',
+        subtitle: `${phone || '-'} | ${statusMap[subtitle] || subtitle}`,
+      };
+    },
+  },
 });

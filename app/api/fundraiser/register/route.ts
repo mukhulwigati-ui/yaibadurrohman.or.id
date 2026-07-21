@@ -1,4 +1,4 @@
-// app/api/fundraiser/route.ts
+// app/api/fundraiser/register/route.ts
 import { NextResponse } from 'next/server';
 // Menggunakan clientInternal untuk mutasi data tulis ke Sanity
 import { clientInternal as client } from '@/lib/sanity';
@@ -25,52 +25,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Nomor WhatsApp wajib diisi.' }, { status: 400 });
     }
 
-    // 3. Normalisasi nomor WhatsApp ke format standar internasional
+    // 3. Normalisasi nomor WhatsApp ke format internasional & lokal
     let formattedPhone = phone.replace(/[^0-9]/g, '');
+    let localPhone = formattedPhone;
+
     if (formattedPhone.startsWith('0')) {
       formattedPhone = '62' + formattedPhone.slice(1);
+    } else if (formattedPhone.startsWith('62')) {
+      localPhone = '0' + formattedPhone.slice(2);
     }
 
     // 4. Cek apakah nomor WhatsApp sudah terdaftar sebelumnya di Sanity
     const existingFundraiser = await client.fetch(
-      `*[_type == "fundraiser" && phone == $phone][0]`,
-      { phone: formattedPhone }
+      `*[_type == "fundraiser" && (phone == $formattedPhone || phone == $localPhone)][0]`,
+      { formattedPhone, localPhone }
     );
 
+    let fundraiserDoc = existingFundraiser;
+    let responseMessage = 'Login berhasil.';
+
+    // 5. Logika Pendaftaran / Login
     if (existingFundraiser) {
-      return NextResponse.json(
-        { success: false, message: 'Nomor WhatsApp ini sudah terdaftar sebagai fundraiser.' }, 
-        { status: 400 }
-      );
+      // Jika nomor sudah terdaftar, cukup update namanya saja
+      fundraiserDoc = await client
+        .patch(existingFundraiser._id)
+        .set({ name: name.trim() })
+        .commit();
+        
+      responseMessage = 'Data fundraiser berhasil dimuat.';
+    } else {
+      // 🚀 Pendaftaran baru dibuat dengan status 'pending'
+      fundraiserDoc = await client.create({
+        _type: 'fundraiser',
+        name: name.trim(),
+        phone: formattedPhone,
+        status: 'pending', // 🛑 Masih pending, jadi TIDAK ADA pengiriman WA di sini
+        totalDanaDihimpun: 0,
+        totalTransaksiSukses: 0,
+        sisaSaldoFee: 0,
+        feePaid: 0,
+      });
+
+      // 🛑 Keterangan diubah sesuai permintaan
+      responseMessage = 'Pendaftaran berhasil, menunggu persetujuan admin.';
     }
 
-    // 5. Operasi pembuatan dokumen baru di Sanity Studio dengan status 'pending'
-    const newFundraiser = await client.create({
-      _type: 'fundraiser',
-      name: name.trim(),
-      phone: formattedPhone,
-      status: 'pending', // Menunggu persetujuan admin terlebih dahulu
-    });
-
-    // 6. Integrasi Pengiriman Pesan WhatsApp via Fonnte (Notifikasi Pengajuan & Panduan Statistik)
-    if (process.env.FONNTE_TOKEN) {
-      const messageText = 
-        `*Pendaftaran Fundraiser yaibadurrohman.or.id* 📢\n\n` +
-        `Assalamu'alaikum *${name.trim()}*,\n\n` +
-        `Alhamdulillah, pengajuan Anda sebagai fundraiser telah kami terima dan sedang ditinjau oleh admin.\n\n` +
-        `Yuk, ambil tautan afiliasi unik Anda dan pantau perolehan donasi secara transparan melalui halaman resmi berikut:\n` +
-        `👉 https://www.yaibadurrohman.or.id/fundraiser/stats\n\n` +
-        `Cukup masukkan nomor WhatsApp Anda (${formattedPhone}) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur setelah akun di-approve.\n\n` +
-        `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
-
-      await fetch('https://api.fonnte.com/send', {
-        method: 'POST',
-        headers: { 'Authorization': process.env.FONNTE_TOKEN },
-        body: new URLSearchParams({ target: formattedPhone, message: messageText }),
-      }).catch(err => console.error('🔥 Fonnte Kirim Error:', err));
-    }
-
-    return NextResponse.json({ success: true, data: newFundraiser }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      message: responseMessage, 
+      data: fundraiserDoc 
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error('🔥 Gagal mendaftarkan fundraiser di backend:', error);

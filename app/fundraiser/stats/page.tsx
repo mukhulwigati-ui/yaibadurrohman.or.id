@@ -1,10 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Smartphone, Check, Copy, ArrowRight, ShieldCheck, TrendingUp, Users, Award, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Smartphone, Check, Copy, ArrowRight, TrendingUp, Users, AlertCircle, Clock } from 'lucide-react';
 
 export default function FundraiserStatsPage() {
-  const [phone, setPhone] = useState('');
+  const searchParams = useSearchParams();
+  const phoneParam = searchParams.get('phone') || '';
+
+  const [phone, setPhone] = useState(phoneParam);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState('');
@@ -13,18 +17,17 @@ export default function FundraiserStatsPage() {
   const [selectedSlug, setSelectedSlug] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const handleCheckStats = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone) return;
+  const fetchStats = async (targetPhone: string) => {
+    if (!targetPhone) return;
 
     setLoading(true);
     setError('');
     setStats(null);
-    setSelectedSlug(''); // Reset pilihan dropdown setiap cek nomor baru
+    setSelectedSlug('');
     setCopied(false);
 
     try {
-      const res = await fetch(`/api/fundraiser/stats?phone=${phone}`);
+      const res = await fetch(`/api/fundraiser/stats?phone=${targetPhone}`);
       const json = await res.json();
       
       if (json.success) {
@@ -37,6 +40,20 @@ export default function FundraiserStatsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 🚀 Otomatis fetch data jika ada parameter phone di URL (dari login/daftar)
+  useEffect(() => {
+    if (phoneParam) {
+      setPhone(phoneParam);
+      fetchStats(phoneParam);
+    }
+  }, [phoneParam]);
+
+  const handleCheckStats = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phone) return;
+    fetchStats(phone);
   };
 
   const handleCopy = (text: string) => {
@@ -92,11 +109,11 @@ export default function FundraiserStatsPage() {
           </div>
         )}
 
-        {/* Hasil Tampilan Statistik Perolehan */}
+        {/* Hasil Tampilan Statistik / Pending Status */}
         {stats && (
           <div className="space-y-4 pt-2 border-t border-gray-100 animate-in fade-in duration-200">
             
-            {/* Kartu Profil & Ringkasan Dana */}
+            {/* Status Akun & Profil */}
             <div className="bg-slate-50 border border-slate-200/70 p-4 space-y-3 rounded-xl">
               <div className="flex justify-between items-center">
                 <span className="text-[11px] font-bold text-gray-500">Nama Relawan</span>
@@ -108,139 +125,135 @@ export default function FundraiserStatsPage() {
                   {stats.profile.status === 'approved' ? 'Aktif Terverifikasi' : 'Pending Approval'}
                 </span>
               </div>
-              
-              <div className="border-t border-gray-200/80 my-2 pt-2.5 flex justify-between items-baseline">
-                <span className="text-[11px] font-bold text-gray-600">Total Dana Dihimpun</span>
-                <span className="text-base font-black text-emerald-600">Rp {stats.totalEarnings.toLocaleString('id-ID')}</span>
-              </div>
-
-              {/* Rincian Alokasi Perolehan */}
-              <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-2">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-[11px] font-semibold text-gray-500">Total Ujrah Hak Anda (10%)</span>
-                  <span className="text-xs font-bold text-gray-700">Rp {Math.round(stats.totalEarnings * 0.1).toLocaleString('id-ID')}</span>
-                </div>
-                
-                <div className="flex justify-between items-baseline">
-                  <span className="text-[11px] font-semibold text-amber-600">Fee Sudah Dibayarkan Yayasan</span>
-                  <span className="text-xs font-bold text-amber-700">-Rp {(stats.profile.feePaid || 0).toLocaleString('id-ID')}</span>
-                </div>
-
-                <div className="flex justify-between items-baseline border-t border-gray-200/80 pt-2 mt-1">
-                  <span className="text-[11px] font-extrabold text-[#0d5c91]">Sisa Saldo Fee Tersedia</span>
-                  <span className="text-sm font-black text-[#0d5c91]">
-                    Rp {Math.max(0, Math.round(stats.totalEarnings * 0.1) - (stats.profile.feePaid || 0)).toLocaleString('id-ID')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center text-[11px] text-gray-500 font-medium pt-1 border-t border-gray-200/60">
-                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" /> Jumlah Donatur</span>
-                <span className="font-bold text-gray-800">{stats.donationCount} Transaksi Sukses</span>
-              </div>
             </div>
 
-            {/* Aksi Tautan Multi-Program */}
-            <div className="space-y-2.5 text-left pt-1">
-              <label className="text-[11px] font-bold text-[#0d5c91] block">
-                🔗 Pilih & Salin Tautan Afiliasi Program Anda
-              </label>
-              
-              {stats.programs && stats.programs.length > 0 ? (
-                <div className="space-y-2.5">
-                  <select
-                    value={selectedSlug}
-                    onChange={(e) => {
-                      setSelectedSlug(e.target.value);
-                      setCopied(false);
-                    }}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
-                  >
-                    <option value="">-- Pilih Program Donasi --</option>
-                    {stats.programs.map((prog: any, index: number) => (
-                      <option key={index} value={prog.slug}>
-                        {prog.title}
-                      </option>
-                    ))}
-                  </select>
+            {/* Jika Status Masih Pending (Menunggu Persetujuan Admin) */}
+            {stats.profile.status !== 'approved' ? (
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center space-y-2.5">
+                <div className="w-9 h-9 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <h3 className="text-xs font-extrabold text-amber-900 uppercase tracking-tight">Akun Menunggu Persetujuan Admin</h3>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Assalamu'alaikum <span className="font-bold">{stats.profile.name}</span>, pengajuan pendaftaran Anda sedang ditinjau oleh tim admin yaibadurrohman.or.id. 
+                  Setelah disetujui, Anda akan menerima konfirmasi via WhatsApp dan tautan afiliasi akan aktif secara otomatis di halaman ini.
+                </p>
+              </div>
+            ) : (
+              /* Jika Status Sudah Approved: Tampilkan Statistik & Link Afiliasi */
+              <>
+                <div className="bg-slate-50 border border-slate-200/70 p-4 space-y-3 rounded-xl">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[11px] font-bold text-gray-600">Total Dana Dihimpun</span>
+                    <span className="text-base font-black text-emerald-600">Rp {stats.totalEarnings.toLocaleString('id-ID')}</span>
+                  </div>
 
-                  {selectedSlug && (() => {
-                    const cleanPhone = phone.replace(/[^0-9]/g, '');
-                    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-                    const affiliateUrl = `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
+                  {/* Rincian Alokasi Perolehan */}
+                  <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[11px] font-semibold text-gray-500">Total Ujrah Hak Anda (10%)</span>
+                      <span className="text-xs font-bold text-gray-700">Rp {Math.round(stats.totalEarnings * 0.1).toLocaleString('id-ID')}</span>
+                    </div>
                     
-                    return (
-                      <div className="border border-sky-100 bg-sky-50/40 p-3 rounded-xl space-y-2 transition-all">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">Tautan Siap Disebar:</span>
-                          <button 
-                            type="button"
-                            onClick={() => handleCopy(affiliateUrl)}
-                            className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all text-white flex items-center gap-1 ${copied ? 'bg-emerald-600' : 'bg-[#0d5c91] hover:bg-sky-900'}`}
-                          >
-                            {copied ? <><Check className="w-3.5 h-3.5" /> Tersalin</> : <><Copy className="w-3.5 h-3.5" /> Salin</>}
-                          </button>
-                        </div>
-                        <div className="bg-white border border-gray-200 px-2.5 py-2 text-[10px] font-mono text-gray-600 rounded-lg truncate select-all">
-                          {affiliateUrl}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <div className="flex rounded-xl overflow-hidden border border-gray-200">
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/campaign/${stats.profile.programSlug}?ref=${phone.replace(/[^0-9]/g, '')}`}
-                    className="flex-1 bg-gray-50 px-3 py-2.5 text-xs font-mono text-gray-600 focus:outline-none truncate"
-                    id="affiliate-link-input-fallback"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      const inputEl = document.getElementById('affiliate-link-input-fallback') as HTMLInputElement;
-                      if (inputEl) {
-                        navigator.clipboard.writeText(inputEl.value);
-                        alert('Tautan dasar berhasil disalin!');
-                      }
-                    }}
-                    className="bg-[#0d5c91] hover:bg-sky-900 text-white font-bold px-4 text-xs uppercase tracking-wider transition"
-                  >
-                    Salin
-                  </button>
-                </div>
-              )}
-              
-              <p className="text-[10px] text-gray-400 leading-relaxed px-0.5">
-                *Silakan pilih program donasi melalui menu pilihan di atas, lalu klik tombol salin untuk menyebarkan tautan afiliasi unik milik Anda.
-              </p>
-            </div>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[11px] font-semibold text-amber-600">Fee Sudah Dibayarkan Yayasan</span>
+                      <span className="text-xs font-bold text-amber-700">-Rp {(stats.profile.feePaid || 0).toLocaleString('id-ID')}</span>
+                    </div>
 
-            {/* Riwayat Dukungan Transaksi */}
-            <div className="space-y-2 border-t border-gray-100 pt-3">
-              <h3 className="text-[11px] font-extrabold text-gray-700 uppercase tracking-wider">Riwayat Dukungan Transaksi</h3>
-              <div className="max-h-48 overflow-y-auto space-y-2 pr-1 divide-y divide-gray-50">
-                {stats.history && stats.history.length > 0 ? (
-                  stats.history.map((item: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center pt-2.5 pb-1 bg-white text-xs gap-3">
-                      <div className="flex-1 min-w-0 text-left space-y-0.5">
-                        <span className="font-bold text-gray-800 block truncate">{item.donorName}</span>
-                        <span className="text-[10px] font-semibold text-[#0d5c91] bg-sky-50 px-2 py-0.5 rounded-md inline-block truncate max-w-full">
-                          Program: {item.programTitle || 'Sedekah Umum / Non-Slug'}
-                        </span>
-                      </div>
-                      <span className="font-black text-emerald-600 font-mono text-right whitespace-nowrap text-xs">
-                        +Rp {Number(item.amount).toLocaleString('id-ID')}
+                    <div className="flex justify-between items-baseline border-t border-gray-200/80 pt-2 mt-1">
+                      <span className="text-[11px] font-extrabold text-[#0d5c91]">Sisa Saldo Fee Tersedia</span>
+                      <span className="text-sm font-black text-[#0d5c91]">
+                        Rp {Math.max(0, Math.round(stats.totalEarnings * 0.1) - (stats.profile.feePaid || 0)).toLocaleString('id-ID')}
                       </span>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-[11px] text-gray-400 italic py-4 text-center">Belum ada donasi masuk dari tautan Anda.</p>
-                )}
-              </div>
-            </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[11px] text-gray-500 font-medium pt-1 border-t border-gray-200/60">
+                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" /> Jumlah Donatur</span>
+                    <span className="font-bold text-gray-800">{stats.donationCount} Transaksi Sukses</span>
+                  </div>
+                </div>
+
+                {/* Aksi Tautan Multi-Program */}
+                <div className="space-y-2.5 text-left pt-1">
+                  <label className="text-[11px] font-bold text-[#0d5c91] block">
+                    🔗 Pilih & Salin Tautan Afiliasi Program Anda
+                  </label>
+                  
+                  {stats.programs && stats.programs.length > 0 ? (
+                    <div className="space-y-2.5">
+                      <select
+                        value={selectedSlug}
+                        onChange={(e) => {
+                          setSelectedSlug(e.target.value);
+                          setCopied(false);
+                        }}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
+                      >
+                        <option value="">-- Pilih Program Donasi --</option>
+                        {stats.programs.map((prog: any, index: number) => (
+                          <option key={index} value={prog.slug}>
+                            {prog.title}
+                          </option>
+                        ))}
+                      </select>
+
+                      {selectedSlug && (() => {
+                        const cleanPhone = phone.replace(/[^0-9]/g, '');
+                        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+                        const affiliateUrl = `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
+                        
+                        return (
+                          <div className="border border-sky-100 bg-sky-50/40 p-3 rounded-xl space-y-2 transition-all">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-gray-500 uppercase">Tautan Siap Disebar:</span>
+                              <button 
+                                type="button"
+                                onClick={() => handleCopy(affiliateUrl)}
+                                className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all text-white flex items-center gap-1 ${copied ? 'bg-emerald-600' : 'bg-[#0d5c91] hover:bg-sky-900'}`}
+                              >
+                                {copied ? <><Check className="w-3.5 h-3.5" /> Tersalin</> : <><Copy className="w-3.5 h-3.5" /> Salin</>}
+                              </button>
+                            </div>
+                            <div className="bg-white border border-gray-200 px-2.5 py-2 text-[10px] font-mono text-gray-600 rounded-lg truncate select-all">
+                              {affiliateUrl}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : null}
+                  
+                  <p className="text-[10px] text-gray-400 leading-relaxed px-0.5">
+                    *Silakan pilih program donasi melalui menu pilihan di atas, lalu klik tombol salin untuk menyebarkan tautan afiliasi unik milik Anda.
+                  </p>
+                </div>
+
+                {/* Riwayat Dukungan Transaksi */}
+                <div className="space-y-2 border-t border-gray-100 pt-3">
+                  <h3 className="text-[11px] font-extrabold text-gray-700 uppercase tracking-wider">Riwayat Dukungan Transaksi</h3>
+                  <div className="max-h-48 overflow-y-auto space-y-2 pr-1 divide-y divide-gray-50">
+                    {stats.history && stats.history.length > 0 ? (
+                      stats.history.map((item: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center pt-2.5 pb-1 bg-white text-xs gap-3">
+                          <div className="flex-1 min-w-0 text-left space-y-0.5">
+                            <span className="font-bold text-gray-800 block truncate">{item.donorName}</span>
+                            <span className="text-[10px] font-semibold text-[#0d5c91] bg-sky-50 px-2 py-0.5 rounded-md inline-block truncate max-w-full">
+                              Program: {item.programTitle || 'Sedekah Umum / Non-Slug'}
+                            </span>
+                          </div>
+                          <span className="font-black text-emerald-600 font-mono text-right whitespace-nowrap text-xs">
+                            +Rp {Number(item.amount).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[11px] text-gray-400 italic py-4 text-center">Belum ada donasi masuk dari tautan Anda.</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
           </div>
         )}

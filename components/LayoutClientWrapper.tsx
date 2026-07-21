@@ -15,32 +15,52 @@ interface LayoutClientWrapperProps {
 export default function LayoutClientWrapper({ children, donations = [] }: LayoutClientWrapperProps) {
   const pathname = usePathname();
 
-  // 🚀 Cek apakah halaman yang dibuka adalah Dashboard Sanity Studio
+  // 🚀 Cek apakah halaman yang dibuka adalah Dashboard Sanity Studio atau bukan Homepage
   const isStudioPage = pathname?.startsWith('/studio');
+  const isHomePage = pathname === '/';
 
   // --- STATE & LOGIKA PWA PROMPT ---
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
+  
+  // 🚀 STATE BARU: Melacak apakah user sudah menekan tombol close pada sesi ini
+  const [hasClosedPrompt, setHasClosedPrompt] = useState(false);
 
   useEffect(() => {
+    // PWA hanya aktif di homepage, bukan di studio, dan jika belum di-close oleh user pada sesi ini
+    if (!isHomePage || isStudioPage || hasClosedPrompt) {
+      setShowPrompt(false);
+      return;
+    }
+
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIOSDevice);
 
-    // Untuk iOS, langsung tampilkan setelah 3 detik setiap halaman dimuat
+    // 🚀 Timer 5 detik untuk iOS
     if (isIOSDevice) {
-      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      const timer = setTimeout(() => {
+        if (!hasClosedPrompt) {
+          setShowPrompt(true);
+        }
+      }, 5000);
       return () => clearTimeout(timer);
     }
 
-    // Event listener untuk Android / Desktop
+    // Event listener untuk Android / Desktop dengan jeda 5 detik setelah prompt tersedia
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Langsung tampilkan prompt setiap kunjungan/refresh
-      setShowPrompt(true);
+      
+      const timer = setTimeout(() => {
+        if (!hasClosedPrompt) {
+          setShowPrompt(true);
+        }
+      }, 5000);
+
+      return () => clearTimeout(timer);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -48,7 +68,7 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [isHomePage, isStudioPage, hasClosedPrompt]);
 
   const handleInstallClick = async () => {
     if (isIOS) {
@@ -66,17 +86,13 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
     }
     setDeferredPrompt(null);
     setShowPrompt(false);
+    setHasClosedPrompt(true);
   };
 
   const handleClose = () => {
     setShowPrompt(false);
     setShowIOSGuide(false);
-    // Hapus penyimpanan riwayat close agar muncul lagi saat refresh/kunjungan berikutnya
-    if (isIOS) {
-      localStorage.removeItem('pwa_ios_closed');
-    } else {
-      localStorage.removeItem('pwa_android_closed');
-    }
+    setHasClosedPrompt(true); // 🚀 Menandai bahwa prompt sudah ditutup, sehingga tidak akan muncul lagi sebelum halaman direfresh
   };
 
   return (
@@ -94,8 +110,8 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
         {children}
       </main>
 
-      {/* 3. MODAL PWA PROMPT (Posisi di Tengah dengan Tombol Close) */}
-      {!isStudioPage && showPrompt && (
+      {/* 3. MODAL PWA PROMPT (Hanya muncul di Homepage setelah detik ke-5 & belum di-close) */}
+      {isHomePage && !isStudioPage && showPrompt && !hasClosedPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-xs bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 text-center space-y-4">
             

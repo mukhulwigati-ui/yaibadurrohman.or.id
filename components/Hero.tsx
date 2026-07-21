@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { X, UserPlus, Phone, User, CheckCircle2, AlertCircle, Loader2, LogIn } from 'lucide-react';
+import { X, UserPlus, Phone, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export interface HeroBanner {
   _id: string;
@@ -43,14 +43,10 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
   const banners = initialBanners.length > 0 ? initialBanners : DEFAULT_BANNERS;
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 🚀 State untuk melacak apakah menu "Lainnya" sedang diperluas (expanded)
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // 🚀 State Modal Fundraiser & Tab Mode ('login' atau 'register')
   const [showFundraiserModal, setShowFundraiserModal] = useState(false);
   const [modalMode, setModalMode] = useState<'login' | 'register'>('login');
   
-  // Input fields
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   
@@ -58,7 +54,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 🚀 Daftar seluruh kategori program
   const allCategories = [
     { name: 'Zakat', icon: '/images/zakat.jpg', href: '/program?cat=zakat', glowing: true },
     { name: 'Infaq', icon: '/images/infaq.jpg', href: '/program?cat=infaq', glowing: false },
@@ -73,22 +68,17 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
     { name: 'Jadi Fundraiser', icon: '/images/fundraiser.png', href: '#', isFundraiserBtn: true, glowing: false },
   ];
 
-  const displayedCategories = isExpanded 
-    ? allCategories 
-    : allCategories.slice(0, 7);
+  const displayedCategories = isExpanded ? allCategories : allCategories.slice(0, 7);
 
-  // Auto Slider Effect
   useEffect(() => {
     if (banners.length <= 1) return;
-
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
     }, 3500);
-
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  // Handle Login Fundraiser (Cek Nomor WA)
+  // Handle Login Fundraiser
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) return;
@@ -116,7 +106,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
     }
   };
 
-  // Handle Pendaftaran Fundraiser Baru (Nama & No WA + Notifikasi WA)
+  // Handle Pendaftaran Fundraiser Baru
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) return;
@@ -134,7 +124,8 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
       const data = await response.json();
 
       if (data.success) {
-        setSuccessMessage('Pendaftaran Berhasil! Notifikasi konfirmasi telah dikirim ke WhatsApp Anda.');
+        // 🚀 DIPERBAIKI: Mengambil pesan langsung dari backend (data.message)
+        setSuccessMessage(data.message || 'Pendaftaran berhasil, menunggu persetujuan admin.');
         setTimeout(() => {
           router.push(`/fundraiser/stats?phone=${encodeURIComponent(phone)}`);
         }, 2000);
@@ -150,26 +141,17 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
 
   return (
     <div className="w-full max-w-md mx-auto bg-white border border-gray-200/90 shadow-xs rounded-none overflow-hidden p-3 space-y-4">
-      
-      {/* CSS Animasi Memancar & Bercahaya (Glow & Pulse) */}
       <style jsx>{`
         @keyframes glowing-effect {
-          0% {
-            box-shadow: 0 0 0 0 rgba(13, 92, 145, 0.6);
-          }
-          70% {
-            box-shadow: 0 0 0 8px rgba(13, 92, 145, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(13, 92, 145, 0);
-          }
+          0% { box-shadow: 0 0 0 0 rgba(13, 92, 145, 0.6); }
+          70% { box-shadow: 0 0 0 8px rgba(13, 92, 145, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(13, 92, 145, 0); }
         }
         .animate-glow {
           animation: glowing-effect 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
         }
       `}</style>
 
-      {/* 1. HERO BANNER CAROUSEL AREA */}
       <div>
         <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden rounded-none border border-gray-100 shadow-2xs">
           {banners.map((banner, index) => {
@@ -181,17 +163,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                   isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                 }`}
               >
-                {banner.linkUrl ? (
-                  <Link href={banner.linkUrl} className="block w-full h-full relative">
-                    <Image
-                      src={banner.imageUrl}
-                      alt={banner.title || 'Hero Banner'}
-                      fill
-                      className="object-cover object-center"
-                      unoptimized
-                    />
-                  </Link>
-                ) : (
+                <Link href={banner.linkUrl || '#'} className="block w-full h-full relative">
                   <Image
                     src={banner.imageUrl}
                     alt={banner.title || 'Hero Banner'}
@@ -199,13 +171,12 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                     className="object-cover object-center"
                     unoptimized
                   />
-                )}
+                </Link>
               </div>
             );
           })}
         </div>
 
-        {/* Dynamic Dots Indicator */}
         {banners.length > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-3">
             {banners.map((_, idx) => {
@@ -215,9 +186,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`transition-all duration-300 ${
-                    isActive
-                      ? 'w-6 h-1.5 bg-sky-500 rounded-full'
-                      : 'w-1.5 h-1.5 bg-sky-200 hover:bg-sky-400 rounded-full'
+                    isActive ? 'w-6 h-1.5 bg-sky-500 rounded-full' : 'w-1.5 h-1.5 bg-sky-200 hover:bg-sky-400 rounded-full'
                   }`}
                   aria-label={`Slide ${idx + 1}`}
                 />
@@ -227,7 +196,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
         )}
       </div>
 
-      {/* 2. MENU KATEGORI PROGRAM */}
       <div className="pt-1 pb-2">
         <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 mb-3 tracking-tight">
           Raih Keberkahan Dihari Ini!
@@ -246,13 +214,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                   className="group flex flex-col items-center focus:outline-none"
                 >
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
-                    <Image
-                      src={cat.icon}
-                      alt={cat.name}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                    />
+                    <Image src={cat.icon} alt={cat.name} width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600 leading-tight">
                     {cat.name}
@@ -268,13 +230,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                     cat.glowing ? 'animate-glow ring-2 ring-sky-400/80' : ''
                   }`}
                 >
-                  <Image
-                    src={cat.icon}
-                    alt={cat.name}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
+                  <Image src={cat.icon} alt={cat.name} width={48} height={48} className="w-full h-full object-cover" />
                 </div>
                 <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600 leading-tight">
                   {cat.name}
@@ -283,7 +239,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
             );
           })}
 
-          {/* Tombol "Lainnya" */}
           {!isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
@@ -300,7 +255,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
             </button>
           )}
 
-          {/* Tombol "Tutup" */}
           {isExpanded && (
             <button
               onClick={() => setIsExpanded(false)}
@@ -316,16 +270,12 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
               </span>
             </button>
           )}
-
         </div>
       </div>
 
-      {/* 3. MODAL POP-UP PORTAL FUNDRAISER (Tab Login & Daftar Baru) */}
       {showFundraiserModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-xs bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 text-left space-y-4">
-            
-            {/* Tombol Close */}
             <button
               onClick={() => {
                 setShowFundraiserModal(false);
@@ -338,7 +288,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
               <X className="w-4 h-4" />
             </button>
 
-            {/* Header Modal & Switch Tab */}
             <div className="text-center space-y-2 pt-1">
               <div className="w-10 h-10 bg-sky-50 text-[#0d5c91] rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <UserPlus className="w-5 h-5" />
@@ -347,15 +296,10 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 Portal Fundraiser
               </h4>
               
-              {/* Tab Navigasi Mode */}
               <div className="flex bg-gray-100 p-1 rounded-xl">
                 <button
                   type="button"
-                  onClick={() => {
-                    setModalMode('register');
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                  }}
+                  onClick={() => { setModalMode('register'); setErrorMessage(''); setSuccessMessage(''); }}
                   className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition ${
                     modalMode === 'register' ? 'bg-white text-[#0d5c91] shadow-xs' : 'text-gray-500 hover:text-gray-900'
                   }`}
@@ -364,11 +308,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setModalMode('login');
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                  }}
+                  onClick={() => { setModalMode('login'); setErrorMessage(''); setSuccessMessage(''); }}
                   className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition ${
                     modalMode === 'login' ? 'bg-white text-[#0d5c91] shadow-xs' : 'text-gray-500 hover:text-gray-900'
                   }`}
@@ -384,7 +324,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 <p className="text-[11px] font-semibold leading-relaxed">{successMessage}</p>
               </div>
             ) : modalMode === 'register' ? (
-              /* FORM PENDAFTARAN FUNDRAISER BARU */
               <form onSubmit={handleRegister} className="space-y-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-700 uppercase">Nama Lengkap</label>
@@ -438,12 +377,11 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                       <span>Mendaftarkan...</span>
                     </>
                   ) : (
-                    'Daftar & Kirim WA ➔'
+                    'Daftar ➔'
                   )}
                 </button>
               </form>
             ) : (
-              /* FORM LOGIN FUNDRAISER (Cukup Nomor WA) */
               <form onSubmit={handleLogin} className="space-y-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-700 uppercase">Nomor WhatsApp Terdaftar</label>
@@ -489,7 +427,6 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -10,23 +10,31 @@ export async function POST(request: Request) {
     }
 
     // Tangkap data status, nama, nomor telepon, dan judul program dari payload Sanity Webhook
-    const { name, phone, status, programTitle } = body;
+    const name = body.name || body.result?.name;
+    const phone = body.phone || body.result?.phone;
+    const status = body.status || body.result?.status;
 
     // 🚀 VALIDASI KUNCI: Notifikasi HANYA dikirim jika status berubah menjadi 'approved'
-    if (status === 'approved') {
+    if (status === 'approved' && phone) {
       const fonnteToken = process.env.FONNTE_TOKEN;
       if (!fonnteToken) {
         console.error('🔥 Fonnte Token belum dikonfigurasi di .env.local');
         return NextResponse.json({ success: false, message: 'Token WA tidak ditemukan' }, { status: 500 });
       }
 
+      // Normalisasi nomor telepon ke format internasional
+      let formattedPhone = phone.replace(/[^0-9]/g, '');
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '62' + formattedPhone.slice(1);
+      }
+
       const messageText = 
-        `*Pendaftaran Fundraiser Lazisku Disetujui!* 🎉\n\n` +
-        `Assalamu'alaikum *${name}*,\n\n` +
-        `Alhamdulillah, pengajuan Anda sebagai fundraiser untuk program *"${programTitle}"* telah resmi *DISETUJUI & DIAKTIFKAN* oleh admin LAZIS Khoiro Ummah.\n\n` +
+        `*Pendaftaran Fundraiser yaibadurrohman.or.id Disetujui!* 🎉\n\n` +
+        `Assalamu'alaikum *${name || 'Relawan'}*,\n\n` +
+        `Alhamdulillah, pengajuan Anda sebagai fundraiser telah resmi *DISETUJUI & DIAKTIFKAN* oleh admin.\n\n` +
         `Yuk, ambil tautan afiliasi unik Anda dan pantau perolehan donasi secara transparan melalui halaman resmi berikut:\n` +
-        `👉 https://www.lazisku.com/fundraiser/stats \n\n` +
-        `Cukup masukkan nomor WhatsApp Anda (*${phone}*) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur.\n\n` +
+        `👉 https://www.yaibadurrohman.or.id/fundraiser/stats\n\n` +
+        `Cukup masukkan nomor WhatsApp Anda (*${formattedPhone}*) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur.\n\n` +
         `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
 
       // Kirim via Fonnte
@@ -34,7 +42,7 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: { 'Authorization': fonnteToken },
         body: new URLSearchParams({
-          target: phone,
+          target: formattedPhone,
           message: messageText,
         }),
       });
