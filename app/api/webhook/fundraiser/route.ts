@@ -9,13 +9,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Payload kosong' }, { status: 400 });
     }
 
-    // Tangkap data status, nama, nomor telepon, dan judul program dari payload Sanity Webhook
+    // Tangkap data status, nama, dan nomor telepon dari payload Sanity Webhook
     const name = body.name || body.result?.name;
     const phone = body.phone || body.result?.phone;
     const status = body.status || body.result?.status;
 
-    // 🚀 VALIDASI KUNCI: Notifikasi HANYA dikirim jika status berubah menjadi 'approved'
-    if (status === 'approved' && phone) {
+    // 🚀 VALIDASI KUNCI: Menangkap baik format sistem ('approved') maupun teks bahasa Indonesia ('Disetujui (Aktif)')
+    const isApproved = status === 'approved' || status === 'Disetujui (Aktif)';
+
+    if (isApproved && phone) {
       const fonnteToken = process.env.FONNTE_TOKEN;
       if (!fonnteToken) {
         console.error('🔥 Fonnte Token belum dikonfigurasi di .env.local');
