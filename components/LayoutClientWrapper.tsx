@@ -29,21 +29,18 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIOSDevice);
 
+    // Untuk iOS, langsung tampilkan setelah 3 detik setiap halaman dimuat
     if (isIOSDevice) {
-      const hasClosedIOS = localStorage.getItem('pwa_ios_closed');
-      if (!hasClosedIOS) {
-        const timer = setTimeout(() => setShowPrompt(true), 3000);
-        return () => clearTimeout(timer);
-      }
+      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      return () => clearTimeout(timer);
     }
 
+    // Event listener untuk Android / Desktop
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      const hasClosedAndroid = localStorage.getItem('pwa_android_closed');
-      if (!hasClosedAndroid) {
-        setShowPrompt(true);
-      }
+      // Langsung tampilkan prompt setiap kunjungan/refresh
+      setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -74,10 +71,11 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
   const handleClose = () => {
     setShowPrompt(false);
     setShowIOSGuide(false);
+    // Hapus penyimpanan riwayat close agar muncul lagi saat refresh/kunjungan berikutnya
     if (isIOS) {
-      localStorage.setItem('pwa_ios_closed', 'true');
+      localStorage.removeItem('pwa_ios_closed');
     } else {
-      localStorage.setItem('pwa_android_closed', 'true');
+      localStorage.removeItem('pwa_android_closed');
     }
   };
 
