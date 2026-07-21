@@ -42,6 +42,24 @@ export default defineType({
       },
       initialValue: 'Kemanusiaan',
     }),
+    // ===================================================================
+    // 🚀 TAMBAHAN: Field Penempatan Section Sesuai Request Anda
+    // ===================================================================
+    defineField({
+      name: 'sectionType',
+      title: 'Penempatan Bagian (Section)',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Penggalangan Dana Mendesak', value: 'mendesak' },
+          { title: 'Program Unggulan', value: 'unggulan' },
+          { title: 'Program Pilihan', value: 'pilihan' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'pilihan',
+      description: 'Pilih di bagian mana campaign ini akan ditampilkan pada halaman utama.',
+    }),
     defineField({
       name: 'image',
       title: 'Foto / Cover Utama',
@@ -65,6 +83,12 @@ export default defineType({
       type: 'number',
       initialValue: 50000000,
       description: 'Contoh: 50000000 untuk target Rp 50 Juta.',
+    }),
+    defineField({
+      name: 'daysLeft',
+      title: 'Sisa Hari (Opsional)',
+      type: 'number',
+      description: 'Jumlah sisa hari penggalangan dana (jika ingin ditampilkan).',
     }),
     defineField({
       name: 'description',

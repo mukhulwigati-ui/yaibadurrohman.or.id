@@ -27,20 +27,52 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   let heroBanners: HeroBanner[] = [];
+  let mendesakPrograms: any[] = [];
+  let unggulanPrograms: any[] = [];
+  let pilihanPrograms: any[] = [];
 
   try {
-    // 🚀 GROQ Query yang fleksibel menangkap schema "heroBanner" maupun "banner"
-    const data = await serverClient.fetch(
-      `*[_type in ["heroBanner", "banner"] && active != false] | order(order asc, _createdAt desc)[0...10] {
+    // 🚀 Jalankan pengambilan data secara paralel untuk Hero Banners dan Kategori Campaign
+    const query = `{
+      "heroBanners": *[_type in ["heroBanner", "banner"] && active != false] | order(order asc, _createdAt desc)[0...10] {
         "id": _id,
         "title": coalesce(title, name),
         "imageUrl": coalesce(image.asset->url, banner.asset->url),
         "linkUrl": link
-      }`
-    );
+      },
+      "mendesak": *[_type == "program" && sectionType == "mendesak"] | order(_createdAt desc)[0...5] {
+        "id": _id,
+        "title": title,
+        "slug": slug.current,
+        "image": image.asset->url,
+        "collectedRaw": coalesce(collectedAmount, 0),
+        "targetAmount": coalesce(targetAmount, 50000000),
+        "daysLeft": daysLeft
+      },
+      "unggulan": *[_type == "program" && sectionType == "unggulan"] | order(_createdAt desc)[0...5] {
+        "id": _id,
+        "title": title,
+        "slug": slug.current,
+        "image": image.asset->url,
+        "collectedRaw": coalesce(collectedAmount, 0),
+        "targetAmount": coalesce(targetAmount, 50000000)
+      },
+      "pilihan": *[_type == "program" && (sectionType == "pilihan" || !defined(sectionType))] | order(_createdAt desc)[0...5] {
+        "id": _id,
+        "title": title,
+        "slug": slug.current,
+        "image": image.asset->url,
+        "collectedRaw": coalesce(collectedAmount, 0),
+        "targetAmount": coalesce(targetAmount, 50000000),
+        "donorsCount": count(donors)
+      }
+    }`;
 
-    if (Array.isArray(data)) {
-      heroBanners = data
+    const data = await serverClient.fetch(query);
+
+    // Mapping Hero Banners
+    if (data.heroBanners && Array.isArray(data.heroBanners)) {
+      heroBanners = data.heroBanners
         .filter((item: any) => item && item.imageUrl)
         .map((item: any) => ({
           _id: item.id || Math.random().toString(),
@@ -49,19 +81,34 @@ export default async function HomePage() {
           linkUrl: item.linkUrl || undefined,
         }));
     }
+
+    mendesakPrograms = data.mendesak || [];
+    unggulanPrograms = data.unggulan || [];
+    pilihanPrograms = data.pilihan || [];
+
   } catch (err) {
-    console.error('🔥 Gagal mengambil hero banner di server:', err);
+    console.error('🔥 Gagal mengambil data homepage dari Sanity:', err);
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col items-center justify-start w-full overflow-x-hidden pb-12">
-      <div className="w-full max-w-md mx-auto px-3 py-3 space-y-3">
+    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-start w-full overflow-x-hidden pb-24">
+      <div className="w-full max-w-md mx-auto px-3 py-4 space-y-4">
+        
         {/* Pass data banners dari server component langsung ke Hero */}
         <Hero initialBanners={heroBanners} />
+        
         <TotalAccumulationWidget />
-        <Campaign />
+        
+        {/* Komponen Campaign dengan props data yang sudah dipisah per section */}
+        <Campaign 
+          mendesak={mendesakPrograms} 
+          unggulan={unggulanPrograms} 
+          pilihan={pilihanPrograms} 
+        />
+        
         <News />
         <Footer />
+        
       </div>
     </main>
   );
