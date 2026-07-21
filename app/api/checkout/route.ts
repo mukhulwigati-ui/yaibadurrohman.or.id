@@ -5,11 +5,11 @@ export const dynamic = 'force-dynamic';
 
 // 🚀 BYPASS TEST: Memasukkan string token Editor langsung ke kode untuk melewati sumbatan Env Hosting
 const client = createClient({
-  projectId: '61d8vnuq', 
+  projectId: '915u7hh1', 
   dataset: 'production',
   useCdn: false,
   apiVersion: '2024-01-01',
-  token: 'sk44JM4AlD6urcLa9Ak9vvnRpLGlsRai9aftW1wPA4w9zxwhrCpKREk2ArKU25K4kENIPxVXenu4kZhm2cOSaxGP69kz8az2qM2BZDIVzqyAGLjIvVTGKMu39CExUrKwbw2wCb2bfxKPgZ4lqEt2nwLZT4HEc4XT1qfrZ0i6KYupIlT6IOlP', 
+  token: 'sk4AP9tJp0fIN1khUK99zeKBzXjOOEDDZzQ97KfQ94YtfBK6Qcj0d4Y2gErC4g6JkU4BgZDcBYYc4SvSVYrOoOAPGhyQ3AQV6oUDVNDVaAwWJxavREqrpyEJ8TvZTMIu9J4Ne4HAtmUpcgexMdrxniSWtf5QdoC657E6lOqbdkzIrgBcQyUX', 
 });
 
 export async function POST(request: Request) {
