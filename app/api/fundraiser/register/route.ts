@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const rawPhone = phone.trim();
     const localPhone = formattedPhone.startsWith('62') ? '0' + formattedPhone.slice(2) : phone;
 
-    // Cek apakah nomor sudah terdaftar sebelumnya agar tidak duplikat
+    // Cek apakah nomor sudah terdaftar sebelumnya
     const existingQuery = `*[_type == "fundraiser" && (phone == $phone || phone == $rawPhone || phone == $localPhone)][0]`;
     const existing = await client.fetch(existingQuery, { 
       phone: formattedPhone, 
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     if (existing) {
       newFundraiser = existing;
     } else {
-      // Simpan data baru ke Sanity secara langsung (langsung aktif otomatis)
+      // Simpan data baru ke Sanity
       newFundraiser = await client.create({
         _type: 'fundraiser',
         name: name,
@@ -45,28 +45,31 @@ export async function POST(request: Request) {
       });
     }
 
-    // Ambil token Fonnte (Mendukung kedua nama variabel agar aman)
-    const fonnteToken = process.env.FONNTE_TOKEN || process.env.TOKEN_FONNTE;
+    // 🚀 PENGAMAN: Kirim WhatsApp terpisah agar jika Fonnte gagal/error, registrasi tetap sukses
+    try {
+      const fonnteToken = process.env.FONNTE_TOKEN || process.env.TOKEN_FONNTE;
 
-    if (fonnteToken) {
-      const messageText = 
-        `*Pendaftaran Fundraiser yaibadurrohman.or.id Berhasil!* 🎉\n\n` +
-        `Assalamu'alaikum *${name}*,\n\n` +
-        `Alhamdulillah, pendaftaran Anda sebagai fundraiser telah resmi *AKTIF*.\n\n` +
-        `Yuk, ambil tautan afiliasi unik Anda dan pantau perolehan donasi secara transparan melalui halaman resmi berikut:\n` +
-        `👉 https://www.yaibadurrohman.or.id/fundraiser/stats\n\n` +
-        `Cukup masukkan nomor WhatsApp Anda (*${formattedPhone}*) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur.\n\n` +
-        `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
+      if (fonnteToken) {
+        const messageText = 
+          `*Pendaftaran Fundraiser yaibadurrohman.or.id Berhasil!* 🎉\n\n` +
+          `Assalamu'alaikum *${name}*,\n\n` +
+          `Alhamdulillah, pendaftaran Anda sebagai fundraiser telah resmi *AKTIF*.\n\n` +
+          `Yuk, ambil tautan afiliasi unik Anda dan pantau perolehan donasi secara transparan melalui halaman resmi berikut:\n` +
+          `👉 https://www.yaibadurrohman.or.id/fundraiser/stats\n\n` +
+          `Cukup masukkan nomor WhatsApp Anda (*${formattedPhone}*) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur.\n\n` +
+          `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
 
-      // Kirim WhatsApp via Fonnte secara langsung
-      await fetch('https://api.fonnte.com/send', {
-        method: 'POST',
-        headers: { 'Authorization': fonnteToken },
-        body: new URLSearchParams({
-          target: formattedPhone,
-          message: messageText,
-        }),
-      });
+        await fetch('https://api.fonnte.com/send', {
+          method: 'POST',
+          headers: { 'Authorization': fonnteToken },
+          body: new URLSearchParams({
+            target: formattedPhone,
+            message: messageText,
+          }),
+        });
+      }
+    } catch (waError) {
+      console.error('⚠️ Gagal kirim WA Fonnte (tetapi registrasi aman):', waError);
     }
 
     return NextResponse.json({ 
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('🔥 Register Fundraiser Error:', error);
-    return NextResponse.json({ success: false, message: 'Terjadi kesalahan pada server.', error: error.message }, { status: 500 });
+    console.error('🔥 Register Fundraiser Error:', error.message || error);
+    return NextResponse.json({ success: false, message: `Gagal server: ${error.message || 'Kesalahan tidak diketahui'}` }, { status: 500 });
   }
 }
