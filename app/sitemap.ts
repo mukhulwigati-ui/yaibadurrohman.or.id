@@ -1,66 +1,97 @@
 // app/sitemap.ts
 import { MetadataRoute } from 'next';
+import { createClient } from '@sanity/client';
 
-// Sesuaikan URL domain utama LAZIS Khoiro Ummah
-const BASE_URL = 'https://lazisku.com';
+// 🚀 CONFIG SANITY CLIENT UNTUK SITEMAP
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+
+if (!projectId) {
+  throw new Error('🔥 GAGAL: NEXT_PUBLIC_SANITY_PROJECT_ID belum disetel di environment variables.');
+}
+
+const sanityClient = createClient({
+  projectId,
+  dataset,
+  apiVersion: '2026-06-20',
+  useCdn: true,
+});
+
+// 🚀 URL Domain Utama yaibadurrohman.or.id
+const BASE_URL = 'https://www.yaibadurrohman.or.id';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
-  // 1. Rute Statis Utama (Halaman yang kodenya tertulis manual di proyek)
+  // 1. Rute Statis Utama (Halaman Inti Web)
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 1.0, // Prioritas tertinggi untuk Homepage
+      priority: 1.0,
     },
     {
-      url: `${BASE_URL}/blog`,
+      url: `${BASE_URL}/news`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    {
+      url: `${BASE_URL}/zakat`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/fundraiser/stats`,
+      lastModified: new Date(),
+      changeFrequency: 'always',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/peta-situs`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
   ];
 
   let campaignRoutes: MetadataRoute.Sitemap = [];
-  let blogRoutes: MetadataRoute.Sitemap = [];
+  let newsRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    // 2. Fetch Rute Dinamis untuk Seluruh Program Donasi
-    const resPrograms = await fetch(`${BASE_URL}/api/programs`, { cache: 'no-store' });
-    const jsonPrograms = await resPrograms.json();
-    
-    if (jsonPrograms.success && Array.isArray(jsonPrograms.data)) {
-      campaignRoutes = jsonPrograms.data.map((program: any) => ({
+    // Ambil data dinamis langsung dari Sanity CMS dalam satu query GROQ
+    const query = `{
+      "programs": *[_type == "program" && defined(slug.current)] { "slug": slug.current, _updatedAt },
+      "news": *[_type == "news" && defined(slug.current)] { "slug": slug.current, publishedAt, _updatedAt }
+    }`;
+
+    const data = await sanityClient.fetch(query);
+
+    // 2. Mapping Rute Program / Campaign
+    if (data.programs && Array.isArray(data.programs)) {
+      campaignRoutes = data.programs.map((program: any) => ({
         url: `${BASE_URL}/campaign/${program.slug}`,
-        lastModified: new Date(), // Idealnya menggunakan field updated/_updatedAt dari Sanity
-        changeFrequency: 'hourly', // Diubah per jam karena nominal donasi dinamis berganti
+        lastModified: program._updatedAt ? new Date(program._updatedAt) : new Date(),
+        changeFrequency: 'hourly',
         priority: 0.9,
       }));
     }
-  } catch (error) {
-    console.error('Failed to fetch programs for sitemap:', error);
-  }
 
-  try {
-    // 3. Fetch Rute Dinamis untuk Seluruh Kabar Berita/Blog
-    // Catatan: Jika Anda belum membuat endpoint global /api/news untuk list semua berita,
-    // pastikan endpoint ini mengembalikan array seluruh artikel yang ada di Sanity.
-    const resNews = await fetch(`${BASE_URL}/api/news`, { cache: 'no-store' });
-    const jsonNews = await resNews.json();
-    
-    if (jsonNews.success && Array.isArray(jsonNews.data)) {
-      blogRoutes = jsonNews.data.map((article: any) => ({
-        url: `${BASE_URL}/blog/${article.slug}`,
-        lastModified: article.publishedAt ? new Date(article.publishedAt) : new Date(),
+    // 3. Mapping Rute Berita / News
+    if (data.news && Array.isArray(data.news)) {
+      newsRoutes = data.news.map((article: any) => ({
+        url: `${BASE_URL}/news/${article.slug}`,
+        lastModified: article.publishedAt ? new Date(article.publishedAt) : (article._updatedAt ? new Date(article._updatedAt) : new Date()),
         changeFrequency: 'weekly',
         priority: 0.7,
       }));
     }
+
   } catch (error) {
-    console.error('Failed to fetch news for sitemap:', error);
+    console.error('Failed to fetch dynamic sitemap data from Sanity:', error);
   }
 
   // 4. Gabungkan semua rute menjadi satu kesatuan sitemap utuh
-  return [...staticRoutes, ...campaignRoutes, ...blogRoutes];
+  return [...staticRoutes, ...campaignRoutes, ...newsRoutes];
 }

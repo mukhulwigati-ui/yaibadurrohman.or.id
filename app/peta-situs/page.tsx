@@ -3,24 +3,31 @@ export const dynamic = 'force-dynamic';
 
 import React from 'react';
 import { Metadata } from 'next';
-import { createClient } from 'next-sanity';
+import { createClient } from '@sanity/client';
 
-// 🚀 CONFIG SANITY CLIENT BYPASS SAFE BULLETPROOF
+// 🚀 CONFIG SANITY CLIENT (Murni dari Environment Variables)
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+
+if (!projectId) {
+  throw new Error('🔥 GAGAL: NEXT_PUBLIC_SANITY_PROJECT_ID belum disetel di environment variables.');
+}
+
 const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '19a8r8sr',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  projectId,
+  dataset,
   apiVersion: '2026-06-20',
   useCdn: false,
 });
 
 // ===================================================================
-// META DATA SEO TAK TERTANDINGI (OPEN GRAPH & METADATA LENGKAP)
+// META DATA SEO (OPEN GRAPH & METADATA LENGKAP YAIBADURROHMAN)
 // ===================================================================
 export const metadata: Metadata = {
-  title: 'Peta Situs Resmi (Sitemap) | LAZIS Khoiro Ummah',
-  description: 'Indeks navigasi lengkap seluruh program donasi, zakat digital, infak kemanusiaan, wakaf, dan kabar berita pembaruan LAZIS Khoiro Ummah.',
+  title: 'Peta Situs Resmi (Sitemap) | yaibadurrohman.or.id',
+  description: 'Indeks navigasi lengkap seluruh program donasi, zakat digital, infak kemanusiaan, wakaf, dan kabar berita pembaruan yaibadurrohman.or.id.',
   alternates: {
-    canonical: 'https://www.lazisku.com/peta-situs',
+    canonical: 'https://www.yaibadurrohman.or.id/peta-situs',
   },
   robots: {
     index: true,
@@ -35,10 +42,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Peta Situs Resmi (Sitemap) | LAZIS Khoiro Ummah',
-    description: 'Akses cepat seluruh struktur halaman program kebaikan dan transparansi laporan LAZIS Khoiro Ummah.',
-    url: 'https://www.lazisku.com/peta-situs',
-    siteName: 'LAZIS Khoiro Ummah',
+    title: 'Peta Situs Resmi (Sitemap) | yaibadurrohman.or.id',
+    description: 'Akses cepat seluruh struktur halaman program kebaikan dan transparansi laporan yaibadurrohman.or.id.',
+    url: 'https://www.yaibadurrohman.or.id/peta-situs',
+    siteName: 'yaibadurrohman.or.id',
     locale: 'id_ID',
     type: 'website',
   },
@@ -72,39 +79,39 @@ export default async function PetaSitusPage() {
   // Struktur Halaman Statis Inti Internal
   const halamanInti = [
     { title: 'Beranda / Halaman Utama', url: '/' },
-    { title: 'Kalkulator Zakat Otomatis', url: '/kalkulator' },
-    { title: 'Semua Program Donasi', url: '/program-donasi' },
+    { title: 'Kalkulator Zakat Otomatis', url: '/zakat' },
+    { title: 'Portal Fundraiser & Statistik', url: '/fundraiser/stats' },
     { title: 'Tentang Kami & Legalitas', url: '/tentang-kami' },
     { title: 'Hubungi Kami (Layanan Amil)', url: '/hubungi-kami' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-12 px-4 md:px-16 text-left">
-      <div className="max-w-5xl mx-auto space-y-10">
+    <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-12 text-left">
+      <div className="max-w-4xl mx-auto space-y-6">
         
         {/* HEADER SECTION */}
-        <div className="border-b border-gray-200 pb-6 space-y-2">
-          <h1 className="text-2xl md:text-3xl font-black text-[#333333] uppercase tracking-tight">
-            Peta Situs Resmi (HTML Sitemap)
+        <div className="bg-white border border-gray-200/90 shadow-sm rounded-2xl p-5 space-y-2">
+          <h1 className="text-base sm:text-xl font-extrabold text-gray-900 tracking-tight">
+            🗺️ Peta Situs Resmi (HTML Sitemap)
           </h1>
-          <p className="text-xs text-gray-500 font-semibold tracking-wide leading-relaxed max-w-2xl">
-            Halaman ini disediakan untuk mempermudah perayapan indeks robot mesin pencari (Google, Bing, Yandex) sekaligus membantu donatur menavigasi seluruh struktur direktori URL LAZIS Khoiro Ummah secara linear dan transparan.
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Halaman ini disediakan untuk mempermudah perayapan indeks robot mesin pencari sekaligus membantu donatur menavigasi seluruh struktur direktori URL <span className="font-semibold text-gray-700">yaibadurrohman.or.id</span> secara transparan.
           </p>
         </div>
 
-        {/* STRUCTURE SITEMAP GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* STRUCTURE SITEMAP GRID (Mobile-First 1 Kolom ke 3 Kolom) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* KOLOM 1: HALAMAN UTAMA & INTERNAL */}
-          <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm space-y-4">
-            <h2 className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-none uppercase tracking-widest inline-block">
+          <div className="bg-white border border-gray-200/90 p-4 sm:p-5 rounded-2xl shadow-sm space-y-3">
+            <h2 className="text-[11px] font-extrabold text-[#0d5c91] bg-sky-50 px-2.5 py-1 rounded-lg uppercase tracking-wider inline-block">
               📂 Halaman Utama & Fitur
             </h2>
-            <ul className="space-y-2.5 text-xs font-bold text-gray-600">
+            <ul className="space-y-2.5 text-xs font-medium text-gray-700">
               {halamanInti.map((item, idx) => (
-                <li key={idx} className="border-b border-gray-50 pb-2 last:border-none">
-                  <a href={item.url} className="hover:text-emerald-600 transition block">
-                    {item.title} <span className="text-[10px] text-gray-300 font-normal block mt-0.5">{`https://www.lazisku.com${item.url}`}</span>
+                <li key={idx} className="border-b border-gray-100 pb-2 last:border-none">
+                  <a href={item.url} className="hover:text-[#0d5c91] transition block font-bold">
+                    {item.title} <span className="text-[10px] text-gray-400 font-normal block mt-0.5">{`https://www.yaibadurrohman.or.id${item.url}`}</span>
                   </a>
                 </li>
               ))}
@@ -112,16 +119,16 @@ export default async function PetaSitusPage() {
           </div>
 
           {/* KOLOM 2: PROGRAM KAMPANYE AKTIF (DYNAMIC SANITY) */}
-          <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm space-y-4">
-            <h2 className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-none uppercase tracking-widest inline-block">
-              📦 Program Kebaikan Aktif ({programs.length})
+          <div className="bg-white border border-gray-200/90 p-4 sm:p-5 rounded-2xl shadow-sm space-y-3">
+            <h2 className="text-[11px] font-extrabold text-[#0d5c91] bg-sky-50 px-2.5 py-1 rounded-lg uppercase tracking-wider inline-block">
+              📦 Program Kebaikan ({programs.length})
             </h2>
             {programs.length > 0 ? (
-              <ul className="space-y-2.5 text-xs font-bold text-gray-600 max-h-[500px] overflow-y-auto pr-1">
+              <ul className="space-y-2.5 text-xs font-medium text-gray-700 max-h-[400px] overflow-y-auto pr-1">
                 {programs.map((item, idx) => (
-                  <li key={idx} className="border-b border-gray-50 pb-2 last:border-none">
-                    <a href={`/campaign/${item.slug}`} className="hover:text-emerald-600 transition block">
-                      {item.title} <span className="text-[10px] text-gray-300 font-normal block mt-0.5">{`https://www.lazisku.com/campaign/${item.slug}`}</span>
+                  <li key={idx} className="border-b border-gray-100 pb-2 last:border-none">
+                    <a href={`/campaign/${item.slug}`} className="hover:text-[#0d5c91] transition block font-bold">
+                      {item.title} <span className="text-[10px] text-gray-400 font-normal block mt-0.5">{`https://www.yaibadurrohman.or.id/campaign/${item.slug}`}</span>
                     </a>
                   </li>
                 ))}
@@ -131,17 +138,17 @@ export default async function PetaSitusPage() {
             )}
           </div>
 
-          {/* KOLOM 3: BERITA KEMANUSIAAN & EDUKASI Islam (DYNAMIC SANITY) */}
-          <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm space-y-4">
-            <h2 className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-none uppercase tracking-widest inline-block">
-              📰 Berita & Kabar Penyaluran ({news.length})
+          {/* KOLOM 3: BERITA KEMANUSIAAN (DYNAMIC SANITY) */}
+          <div className="bg-white border border-gray-200/90 p-4 sm:p-5 rounded-2xl shadow-sm space-y-3">
+            <h2 className="text-[11px] font-extrabold text-[#0d5c91] bg-sky-50 px-2.5 py-1 rounded-lg uppercase tracking-wider inline-block">
+              📰 Berita & Kabar ({news.length})
             </h2>
             {news.length > 0 ? (
-              <ul className="space-y-2.5 text-xs font-bold text-gray-600 max-h-[500px] overflow-y-auto pr-1">
+              <ul className="space-y-2.5 text-xs font-medium text-gray-700 max-h-[400px] overflow-y-auto pr-1">
                 {news.map((item, idx) => (
-                  <li key={idx} className="border-b border-gray-50 pb-2 last:border-none">
-                    <a href={`/news/${item.slug}`} className="hover:text-emerald-600 transition block">
-                      {item.title} <span className="text-[10px] text-gray-300 font-normal block mt-0.5">{`https://www.lazisku.com/news/${item.slug}`}</span>
+                  <li key={idx} className="border-b border-gray-100 pb-2 last:border-none">
+                    <a href={`/news/${item.slug}`} className="hover:text-[#0d5c91] transition block font-bold">
+                      {item.title} <span className="text-[10px] text-gray-400 font-normal block mt-0.5">{`https://www.yaibadurrohman.or.id/news/${item.slug}`}</span>
                     </a>
                   </li>
                 ))}
@@ -154,8 +161,8 @@ export default async function PetaSitusPage() {
         </div>
 
         {/* FOOTER METRICS INFO */}
-        <div className="text-center md:text-left text-[10px] text-gray-400 font-semibold tracking-wide pt-4 border-t border-gray-200">
-          © {new Date().getFullYear()} LAZIS Khoiro Ummah. Nilai tautan peta situs dipetakan otomatis terintegrasi skema indeks.
+        <div className="text-center text-[10px] text-gray-400 font-medium tracking-wide pt-2">
+          © {new Date().getFullYear()} yaibadurrohman.or.id. Nilai tautan peta situs dipetakan otomatis terintegrasi skema indeks.
         </div>
 
       </div>

@@ -56,13 +56,13 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
   const [errorMessage, setErrorMessage] = useState('');
 
   const allCategories = [
-    { name: 'Zakat', icon: '/images/zakat.jpg', href: '/program?cat=zakat', glowing: true },
-    { name: 'Infaq', icon: '/images/infaq.jpg', href: '/program?cat=infaq', glowing: false },
-    { name: 'Sedekah Subuh', icon: '/images/sedekah-subuh.jpg', href: '/program?cat=sedekah-subuh', glowing: false },
+    { name: 'Zakat', icon: '/images/zakat.jpg', href: '/campaign/zakat-maal', glowing: true },
+    { name: 'Infaq', icon: '/images/infaq.jpg', href: '/campaign/infaq-syiar-dakwah', glowing: false },
+    { name: 'Sedekah Subuh', icon: '/images/sedekah-subuh.jpg', href: '/campaign/sedekah-subuh', glowing: false },
     { name: 'Bencana', icon: '/images/bencana.webp', href: '/program?cat=bencana', glowing: false },
-    { name: 'Fidyah', icon: '/images/fidyah.jpg', href: '/program?cat=fidyah', glowing: true },
+    { name: 'Fidyah', icon: '/images/fidyah.jpg', href: '/campaign/bayar-fidyah-untuk-dhuafa-pelosok', glowing: true },
     { name: 'Wakaf', icon: '/images/wakaf.jpg', href: '/program?cat=wakaf', glowing: false },
-    { name: 'ORTA', icon: '/images/orta.png', href: '/program?cat=orta', glowing: false },
+    { name: 'ORTA', icon: '/images/orta.png', href: '/campaign/jadi-orang-tua-asuh-selamatkan-masa-depan-ribuan-yatim', glowing: false },
     { name: 'Sedekah Jumat', icon: '/images/sedekah-jumat.png', href: '/program?cat=sedekah-jumat', glowing: false },
     { name: 'Kifarat', icon: '/images/kifarat.jpeg', href: '/program?cat=kifarat', glowing: false },
     { name: 'Donasi Dari Bunga Bank', icon: '/images/bunga.jpg', href: '/program?cat=bunga-bank', glowing: false },

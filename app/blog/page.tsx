@@ -1,3 +1,4 @@
+// app/blog/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -31,11 +32,11 @@ export default function BlogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100/70 pt-6 pb-24">
+    <div className="min-h-screen bg-gray-50 pt-6 pb-24">
       <div className="w-full max-w-md mx-auto px-3 space-y-4">
-        {/* 🚀 Judul Bagian Atas: "Berita Terbaru" */}
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 text-center tracking-tight">
-          Berita Terbaru
+        {/* 🚀 Judul Bagian Atas */}
+        <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 text-center tracking-tight">
+          Blog & Berita Terbaru
         </h1>
 
         {loading ? (
@@ -44,7 +45,7 @@ export default function BlogPage() {
             {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl p-3 shadow-2xs border border-gray-100 flex items-center gap-3.5 animate-pulse"
+                className="bg-white rounded-2xl p-3 shadow-2xs border border-gray-200/90 flex items-center gap-3.5 animate-pulse"
               >
                 <div className="w-28 sm:w-32 h-20 bg-gray-200 rounded-xl shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -56,17 +57,17 @@ export default function BlogPage() {
             ))}
           </div>
         ) : newsList.length === 0 ? (
-          <div className="text-center py-20 text-slate-400 font-normal text-sm">
-            Belum ada berita yang diterbitkan.
+          <div className="text-center py-20 text-slate-400 font-normal text-xs sm:text-sm">
+            Belum ada artikel blog yang diterbitkan.
           </div>
         ) : (
-          /* List Berita Mobile-Style (Presisi 1:1 Rujukan) */
+          /* List Blog Mobile-Style */
           <div className="space-y-3">
             {newsList.map((post) => (
               <Link
                 key={post.id || post.slug}
                 href={`/blog/${post.slug}`}
-                className="group bg-white rounded-2xl p-3 shadow-2xs border border-gray-100/90 hover:shadow-md transition-all duration-300 flex items-center gap-3.5"
+                className="group bg-white rounded-2xl p-3 shadow-sm border border-gray-200/90 hover:shadow-md transition-all duration-300 flex items-center gap-3.5"
               >
                 {/* Thumbnail Gambar Kiri */}
                 <div className="relative w-28 sm:w-32 aspect-[16/10] rounded-xl overflow-hidden shrink-0 bg-gray-100">
@@ -78,13 +79,12 @@ export default function BlogPage() {
                 </div>
 
                 {/* Detail Teks Judul & Tanggal Kanan */}
-                <div className="flex flex-col justify-between h-full flex-1 pr-1 py-0.5">
-                  {/* 🚀 FIXED: Font sedang (font-semibold), tinta abu-abu lembut (text-slate-700) */}
-                  <h2 className="text-xs sm:text-sm font-semibold text-slate-700 leading-snug tracking-normal line-clamp-2 group-hover:text-sky-600 transition-colors">
+                <div className="flex flex-col justify-between h-full flex-1 pr-1 py-0.5 text-left">
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-800 leading-snug tracking-tight line-clamp-2 group-hover:text-[#0d5c91] transition-colors">
                     {post.title}
                   </h2>
-                  <span className="text-[11px] font-normal text-slate-400 mt-2.5">
-                    {post.dateLabel || post.timeAgo || 'Berita Terbaru'}
+                  <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-2.5 block">
+                    {post.dateLabel || post.timeAgo || 'Baru Saja'}
                   </span>
                 </div>
               </Link>

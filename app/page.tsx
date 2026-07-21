@@ -1,3 +1,4 @@
+// app/page.tsx
 import React from 'react';
 import { createClient } from '@sanity/client';
 import Hero, { HeroBanner } from '@/components/Hero';
@@ -6,13 +7,20 @@ import Campaign from '@/components/Campaign';
 import News from '@/components/News';
 import Footer from '@/components/Footer';
 
-// 🚀 INITIALIZE SANITY CLIENT VIA ENVIRONMENT VARIABLES
+// 🚀 INITIALIZE SANITY CLIENT (Murni dari Environment Variables tanpa fallback ID lama)
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+
+if (!projectId) {
+  throw new Error('🔥 GAGAL: NEXT_PUBLIC_SANITY_PROJECT_ID belum disetel di environment variables.');
+}
+
 const serverClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '915u7hh1',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  useCdn: false, // Wajib false agar data banner terbaru real-time langsung terambil
+  projectId,
+  dataset,
+  useCdn: false,
   apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN, // Menggunakan token dari env jika butuh read draft/private
+  token: process.env.SANITY_API_TOKEN,
 });
 
 export const dynamic = 'force-dynamic';
