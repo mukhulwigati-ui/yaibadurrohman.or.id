@@ -1,5 +1,6 @@
+// app/api/fundraiser/stats/route.ts
 import { NextResponse } from 'next/server';
-// 🚀 OPTIMASI: Pastikan useCdn: false digunakan untuk halaman data statistik yang sensitif & real-time
+// 🚀 OPTIMASI: Pastikan menggunakan client publik atau client Sanity yang sesuai project Anda
 import { clientPublik as client } from '@/lib/sanity';
 
 export const dynamic = 'force-dynamic';
@@ -13,33 +14,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: 'Nomor WhatsApp wajib disertakan.' }, { status: 400 });
     }
 
-    // Bersihkan format nomor untuk pencarian database (Samakan dengan format inputan webhook)
+    // Bersihkan format nomor untuk pencarian database (Samakan dengan format inputan pendaftaran)
     let formattedPhone = phone.replace(/[^0-9]/g, '');
     if (formattedPhone.startsWith('0')) {
       formattedPhone = '62' + formattedPhone.slice(1);
     }
+    const rawPhone = phone.trim();
+    const localPhone = formattedPhone.startsWith('62') ? '0' + formattedPhone.slice(2) : phone;
 
-    // 🚀 QUERY GROQ LENGKAP + RESOLVE PROGRAM TITLE DI DONATIONS: 
-    // 1. Mengambil profil fundraiser
-    // 2. Mengambil donasi sukses beserta nama program terkait dengan mencocokkan field 'slug'
-    // 3. Mengambil seluruh program aktif agar muncul di daftar multi-link afiliasi dashboard
+    // 🚀 GROQ MULTI-QUERY LENGKAP:
+    // 1. Mengambil profil fundraiser beserta program spesifik yang didukung (supportedPrograms)
+    // 2. Mengambil riwayat donasi sukses berdasarkan nomor HP relawan
+    // 3. Mengambil seluruh program aktif sebagai cadangan jika supportedPrograms kosong
     const query = `{
-      "profile": *[_type == "fundraiser" && (phone == $phone || phone == $rawPhone)][0] {
+      "profile": *[_type == "fundraiser" && (phone == $phone || phone == $rawPhone || phone == $localPhone)][0] {
         name,
-        status,
-        feePaid, // Ambil nominal fee yang sudah dibayarkan yayasan dari profil
-        "programTitle": program->title,
-        "programSlug": program->slug.current
+        feePaid,
+        "supportedPrograms": supportedPrograms[]->{
+          title,
+          "slug": slug.current
+        }
       },
-      "donations": *[_type == "donationTransaction" && status == "success" && (fundraiserPhone == $phone || fundraiserPhone == $rawPhone)] | order(_createdAt desc) {
+      "donations": *[_type == "donationTransaction" && status == "success" && (fundraiserPhone == $phone || fundraiserPhone == $rawPhone || fundraiserPhone == $localPhone)] | order(_createdAt desc) {
         amount,
         donorName,
         slug,
-        // 🚀 RESOLVE JUDUL PROGRAM: Mengambil title dari schema program berdasarkan slug transaksi saat ini (^.slug)
         "programTitle": *[_type == "program" && slug.current == ^.slug][0].title,
         _createdAt
       },
-      "programs": *[_type == "program" && !(_id in path('drafts.**'))] {
+      "allPrograms": *[_type == "program" && !(_id in path('drafts.**'))] {
         title,
         "slug": slug.current
       }
@@ -47,12 +50,18 @@ export async function GET(request: Request) {
 
     const data = await client.fetch(query, { 
       phone: formattedPhone,
-      rawPhone: phone.trim() // Jaga-jaga jika di DB tersimpan format lokal '08...'
+      rawPhone: rawPhone,
+      localPhone: localPhone
     });
 
     if (!data.profile) {
-      return NextResponse.json({ success: false, message: 'Data fundraiser tidak ditemukan atau belum aktif.' }, { status: 404 });
+      return NextResponse.json({ success: false, message: 'Nomor WhatsApp belum terdaftar sebagai fundraiser.' }, { status: 404 });
     }
+
+    // Jika fundraiser tidak memilih program khusus, berikan akses ke seluruh program aktif
+    const targetPrograms = (data.profile.supportedPrograms && data.profile.supportedPrograms.length > 0)
+      ? data.profile.supportedPrograms
+      : data.allPrograms;
 
     // Hitung akumulasi pendapatan bersih dari link afiliasi relawan
     const totalEarnings = data.donations.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
@@ -60,17 +69,19 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { 
         success: true, 
-        profile: data.profile,
+        profile: {
+          name: data.profile.name,
+          feePaid: data.profile.feePaid || 0,
+        },
         totalEarnings,
         donationCount: data.donations.length,
         history: data.donations,
-        programs: data.programs // SUPLAI DATA INI AGAR MAPPING MULTI-LINK DI FRONTEND BEKERJA
+        programs: targetPrograms // Menyuplai daftar program untuk dropdown afiliasi frontend
       },
       {
         status: 200,
         headers: {
-          // FIXED: Jangan gunakan cache berdurasi (s-maxage) untuk halaman statistik keuangan!
-          // Gunakan no-store agar donasi QRIS sukses langsung menambah angka di layar saat itu juga.
+          // Mencegah cache agar penambahan donasi instan langsung terbaca di halaman statistik
           'Cache-Control': 'no-store, max-age=0, must-revalidate',
         },
       }

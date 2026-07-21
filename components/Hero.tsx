@@ -1,3 +1,4 @@
+// components/Hero.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -106,7 +107,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
     }
   };
 
-  // Handle Pendaftaran Fundraiser Baru
+  // Handle Pendaftaran Fundraiser Baru (Langsung Aktif Otomatis)
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) return;
@@ -124,8 +125,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
       const data = await response.json();
 
       if (data.success) {
-        // 🚀 DIPERBAIKI: Mengambil pesan langsung dari backend (data.message)
-        setSuccessMessage(data.message || 'Pendaftaran berhasil, menunggu persetujuan admin.');
+        setSuccessMessage(data.message || 'Pendaftaran berhasil! Akun Anda langsung aktif.');
         setTimeout(() => {
           router.push(`/fundraiser/stats?phone=${encodeURIComponent(phone)}`);
         }, 2000);

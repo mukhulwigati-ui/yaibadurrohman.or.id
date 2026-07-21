@@ -1,3 +1,4 @@
+// schemas/fundraiser.ts
 import { defineField, defineType } from 'sanity';
 
 export default defineType({
@@ -27,21 +28,6 @@ export default defineType({
       description: 'Pilih program spesifik. JIKA DIKOSONGKAN, fundraiser otomatis dapat mengakses semua program aktif.',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'program' }] }],
-    }),
-
-    defineField({
-      name: 'status',
-      title: 'Status Verifikasi',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Pending Approval', value: 'pending' },
-          { title: 'Disetujui (Aktif)', value: 'approved' },
-          { title: 'Ditolak', value: 'rejected' },
-        ],
-      },
-      initialValue: 'pending',
-      validation: (Rule) => Rule.required(),
     }),
 
     // ===================================================================
@@ -82,22 +68,16 @@ export default defineType({
     }),
   ],
 
-  // 💡 Menambahkan preview agar mudah dilihat di list Sanity Studio beserta indikator statusnya
+  // 💡 Preview di Sanity Studio menampilkan Nama dan Nomor WhatsApp
   preview: {
     select: {
       title: 'name',
-      subtitle: 'status',
       phone: 'phone',
     },
-    prepare({ title, subtitle, phone }) {
-      const statusMap: Record<string, string> = {
-        pending: '⏳ Pending Approval',
-        approved: '✅ Disetujui (Aktif)',
-        rejected: '❌ Ditolak',
-      };
+    prepare({ title, phone }) {
       return {
         title: title || 'Tanpa Nama',
-        subtitle: `${phone || '-'} | ${statusMap[subtitle] || subtitle}`,
+        subtitle: phone || '-',
       };
     },
   },
