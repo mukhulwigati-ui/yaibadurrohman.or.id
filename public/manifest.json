@@ -1,11 +1,11 @@
 {
   "name": "yaibadurrohman.or.id",
-  "short_name": "ibadurrohman",
+  "short_name": "Ibadurrohman",
   "description": "Platform Sedekah, Infaq & Zakat Online Amanah",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#059669",
+  "theme_color": "#0d5c91",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -23,17 +23,10 @@
   "screenshots": [
     {
       "src": "/images/banner.png",
-      "sizes": "1729x910",
+      "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Tampilan Desktop LAZISku"
-    },
-    {
-      "src": "/images/banner.png",
-      "sizes": "1729x910",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Tampilan Mobile LAZISku"
+      "label": "Tampilan Utama yaibadurrohman.or.id"
     }
   ]
 }
