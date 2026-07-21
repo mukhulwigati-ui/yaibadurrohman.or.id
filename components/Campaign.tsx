@@ -1,150 +1,135 @@
+// components/Campaign.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { CheckCircle2, ChevronRight } from 'lucide-react';
 
-interface CampaignProps {
-  initialData?: any[];
+interface CampaignItem {
+  id: string;
+  title: string;
+  slug: string;
+  image: string;
+  collectedRaw: number;
+  targetAmount: number;
+  daysLeft?: number;
+  donorsCount?: number;
 }
 
-export default function Campaign({ initialData = [] }: CampaignProps) {
-  const [programs, setPrograms] = useState<any[]>(initialData.length > 0 ? initialData : []);
-  const [loading, setLoading] = useState(initialData.length === 0);
+interface CampaignProps {
+  mendesak?: CampaignItem[];
+  unggulan?: CampaignItem[];
+  pilihan?: CampaignItem[];
+}
 
-  useEffect(() => {
-    if (initialData.length > 0) {
-      setPrograms(initialData);
-      setLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-
-    fetch('/api/programs?v=' + Date.now(), {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-      },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        if (isMounted && json.success) setPrograms(json.data);
-        if (isMounted) setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Campaign component fetch error:', err);
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []); // 🚀 Anti-looping dependency array []
-
-  if (loading) {
-    return (
-      <div className="w-full max-w-md mx-auto px-2 py-10 text-center text-xs text-gray-400 font-bold tracking-wider animate-pulse">
-        MEMUAT PROGRAM KEBAIKAN...
-      </div>
-    );
-  }
-
+export default function Campaign({ mendesak = [], unggulan = [], pilihan = [] }: CampaignProps) {
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-none p-4 shadow-2xs border border-gray-200/90 space-y-3">
-      {/* 1. HEADER SECTION */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight leading-snug">
-            Penggalangan Dana Mendesak
-          </h2>
-          <p className="text-[11px] text-gray-500 font-normal mt-0.5">
-            Pilih program yang berarti bagi Anda dan Mereka
-          </p>
-        </div>
+    <div className="space-y-6 w-full text-left">
+      
+      {/* ================= SECTION 1: PENGGALANGAN DANA MENDESAK ================= */}
+      {mendesak.length > 0 && (
+        <section className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/90 shadow-sm space-y-3.5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Penggalangan Dana Mendesak</h2>
+            <Link href="/campaign/mendesak" className="text-xs font-bold text-[#0d5c91] hover:underline">
+              Lihat Semua &gt;
+            </Link>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-normal">Pilih program yang berarti bagi Anda dan Mereka</p>
 
-        <Link
-          href="/program"
-          className="inline-flex items-center gap-0.5 bg-sky-100 hover:bg-sky-200 text-sky-600 text-xs font-semibold px-3 py-1.5 rounded-none shrink-0 transition-colors"
-        >
-          Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
-
-      {/* 2. HORIZONTAL SCROLL CARD CAROUSEL */}
-      {programs.length === 0 ? (
-        <div className="text-center py-8 text-gray-400 text-xs font-medium">
-          Belum ada program galang dana aktif.
-        </div>
-      ) : (
-        <div className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar scroll-smooth">
-          {programs.map((program) => {
-            const collectedNum = Number(program.collectedRaw || 0);
-            const targetNum = Number(program.targetRaw || 1);
-            const percentage = Math.min(Math.round((collectedNum / targetNum) * 100), 100);
-
-            return (
-              <Link
-                key={program.id || program._id}
-                href={`/campaign/${program.slug}`}
-                className="w-[185px] sm:w-[200px] bg-white border border-gray-200/90 rounded-none overflow-hidden shadow-2xs shrink-0 flex flex-col justify-between group hover:border-sky-300 transition-all duration-300"
-              >
-                <div>
-                  {/* Gambar + Badge Sisa Hari */}
-                  <div className="relative h-28 w-full bg-gray-100 overflow-hidden">
-                    <img
-                      src={program.image}
-                      alt={program.title}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                    />
-                    
-                    {/* Badge Sisa Hari */}
-                    <span className="absolute top-0 left-0 bg-sky-900/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-none shadow-2xs">
-                      {program.daysLeft ? `${program.daysLeft} hari lagi` : 'Mendesak'}
-                    </span>
-                  </div>
-
-                  {/* Info Penggalang Dana */}
-                  <div className="p-2.5 pb-0">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <div className="w-4 h-4 rounded-full bg-sky-600 text-white flex items-center justify-center text-[8px] font-bold shrink-0">
-                        SA
-                      </div>
-                      <span className="text-[11px] font-medium text-gray-700 truncate">
-                        Super Admin
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            {mendesak.map((item) => {
+              const percentage = Math.min(Math.round((item.collectedRaw / (item.targetAmount || 50000000)) * 100), 100);
+              return (
+                <Link key={item.id} href={`/campaign/${item.slug}`} className="group border border-gray-200/90 rounded-xl overflow-hidden p-3 bg-gray-50/60 space-y-2.5 block hover:shadow-md transition">
+                  <div className="aspect-[16/10] bg-gray-200 rounded-lg overflow-hidden relative">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    {item.daysLeft && (
+                      <span className="absolute top-2 left-2 bg-[#0d5c91] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                        {item.daysLeft} hari lagi
                       </span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 fill-sky-500/20 shrink-0" />
+                    )}
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-[#0d5c91] transition-colors">{item.title}</h3>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-extrabold text-[#0d5c91]">
+                      Rp {Number(item.collectedRaw).toLocaleString('id-ID')}
+                    </p>
+                    <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#ff2e3b] h-full rounded-full" style={{ width: `${percentage}%` }} />
                     </div>
-
-                    {/* Judul Campaign */}
-                    <h3 className="font-bold text-gray-900 text-xs leading-snug line-clamp-2 min-h-[2rem]">
-                      {program.title}
-                    </h3>
                   </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ================= SECTION 2: PROGRAM UNGGULAN ================= */}
+      {unggulan.length > 0 && (
+        <section className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/90 shadow-sm space-y-3.5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Program Unggulan</h2>
+            <Link href="/campaign/unggulan" className="text-xs font-bold text-[#0d5c91] hover:underline">
+              Lihat Semua &gt;
+            </Link>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-normal">Pilih program yang berarti bagi Anda dan Mereka</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            {unggulan.map((item) => {
+              const percentage = Math.min(Math.round((item.collectedRaw / (item.targetAmount || 50000000)) * 100), 100);
+              return (
+                <Link key={item.id} href={`/campaign/${item.slug}`} className="group border border-gray-200/90 rounded-xl overflow-hidden p-3 bg-gray-50/60 space-y-2.5 block hover:shadow-md transition">
+                  <div className="aspect-[16/10] bg-gray-200 rounded-lg overflow-hidden">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-[#0d5c91] transition-colors">{item.title}</h3>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-extrabold text-[#0d5c91]">
+                      Terkumpul : Rp {Number(item.collectedRaw).toLocaleString('id-ID')}
+                    </p>
+                    <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#ff2e3b] h-full rounded-full" style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ================= SECTION 3: PROGRAM PILIHAN ================= */}
+      {pilihan.length > 0 && (
+        <section className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/90 shadow-sm space-y-3.5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Program Pilihan</h2>
+            <Link href="/campaign/pilihan" className="text-xs font-bold text-[#0d5c91] hover:underline">
+              Lihat Semua &gt;
+            </Link>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-normal">Pilih program yang berarti bagi Anda dan Mereka</p>
+
+          <div className="space-y-3.5 pt-1">
+            {pilihan.map((item) => (
+              <Link key={item.id} href={`/campaign/${item.slug}`} className="group flex gap-3.5 items-center border-b border-gray-100 pb-3.5 last:border-none block hover:opacity-90 transition">
+                <div className="w-28 sm:w-32 aspect-[16/10] bg-gray-200 rounded-xl overflow-hidden shrink-0 shadow-inner">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                 </div>
-
-                {/* Progress Bar & Total Terkumpul */}
-                <div className="p-2.5 pt-2 space-y-1.5">
-                  <div className="w-full bg-gray-100 h-1.5 rounded-none overflow-hidden">
-                    <div
-                      className="bg-sky-600 h-full rounded-none transition-all duration-500"
-                      style={{ width: `${percentage || 10}%` }}
-                    />
+                <div className="flex-1 space-y-1.5 py-0.5">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-[#0d5c91] transition-colors">{item.title}</h3>
+                  <div className="flex justify-between text-[11px] text-slate-500 font-medium pt-0.5">
+                    <span>Terkumpul<br/><strong className="text-[#0d5c91] font-bold">Rp {Number(item.collectedRaw).toLocaleString('id-ID')}</strong></span>
+                    <span className="text-right">Donatur<br/><strong className="text-slate-800 font-bold">{item.donorsCount || 0}</strong></span>
                   </div>
-
-                  <p className="text-[11px] text-gray-500 font-medium">
-                    Terkumpul :{' '}
-                    <span className="font-bold text-sky-600">
-                      {program.collected || `Rp${collectedNum.toLocaleString('id-ID')}`}
-                    </span>
-                  </p>
                 </div>
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </section>
       )}
+
     </div>
   );
 }
