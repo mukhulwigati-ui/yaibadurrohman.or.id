@@ -1,6 +1,15 @@
 // app/api/fundraiser/register/route.ts
 import { NextResponse } from 'next/server';
-import { clientPublik as client } from '@/lib/sanity';
+import { createClient } from '@sanity/client';
+
+// 🚀 KLIEN KHUSUS WRITE: Menggunakan token tulis dari Vercel
+const writeClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '915u7hh1',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_WRITE_TOKEN, // Mengambil langsung dari Vercel
+  useCdn: false,
+});
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +35,7 @@ export async function POST(request: Request) {
 
     // Cek apakah nomor sudah terdaftar sebelumnya
     const existingQuery = `*[_type == "fundraiser" && (phone == $phone || phone == $rawPhone || phone == $localPhone)][0]`;
-    const existing = await client.fetch(existingQuery, { 
+    const existing = await writeClient.fetch(existingQuery, { 
       phone: formattedPhone, 
       rawPhone: rawPhone, 
       localPhone: localPhone 
@@ -36,8 +45,8 @@ export async function POST(request: Request) {
     if (existing) {
       newFundraiser = existing;
     } else {
-      // Simpan data baru ke Sanity
-      newFundraiser = await client.create({
+      // Simpan data baru ke Sanity menggunakan token write
+      newFundraiser = await writeClient.create({
         _type: 'fundraiser',
         name: name,
         phone: formattedPhone,
@@ -45,7 +54,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 🚀 PENGAMAN: Kirim WhatsApp terpisah agar jika Fonnte gagal/error, registrasi tetap sukses
+    // Kirim WhatsApp via Fonnte secara langsung
     try {
       const fonnteToken = process.env.FONNTE_TOKEN || process.env.TOKEN_FONNTE;
 
@@ -69,7 +78,7 @@ export async function POST(request: Request) {
         });
       }
     } catch (waError) {
-      console.error('⚠️ Gagal kirim WA Fonnte (tetapi registrasi aman):', waError);
+      console.error('⚠️ Gagal kirim WA Fonnte:', waError);
     }
 
     return NextResponse.json({ 
