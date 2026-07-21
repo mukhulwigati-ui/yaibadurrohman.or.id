@@ -5,26 +5,27 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
     
+    console.log('🚨 WEBHOOK SANITY MASUK:', JSON.stringify(body));
+
     if (!body) {
       return NextResponse.json({ success: false, message: 'Payload kosong' }, { status: 400 });
     }
 
-    // Tangkap data status, nama, dan nomor telepon dari payload Sanity Webhook
     const name = body.name || body.result?.name;
     const phone = body.phone || body.result?.phone;
     const status = body.status || body.result?.status;
 
-    // 🚀 VALIDASI KUNCI: Menangkap baik format sistem ('approved') maupun teks bahasa Indonesia ('Disetujui (Aktif)')
     const isApproved = status === 'approved' || status === 'Disetujui (Aktif)';
 
     if (isApproved && phone) {
-      const fonnteToken = process.env.FONNTE_TOKEN;
+      // 🚀 FLEKSIBEL: Mendukung kedua nama variabel agar tidak error walau tertukar di Vercel
+      const fonnteToken = process.env.FONNTE_TOKEN || process.env.TOKEN_FONNTE;
+      
       if (!fonnteToken) {
-        console.error('🔥 Fonnte Token belum dikonfigurasi di .env.local');
+        console.error('🔥 Token Fonnte kosong di environment Vercel');
         return NextResponse.json({ success: false, message: 'Token WA tidak ditemukan' }, { status: 500 });
       }
 
-      // Normalisasi nomor telepon ke format internasional
       let formattedPhone = phone.replace(/[^0-9]/g, '');
       if (formattedPhone.startsWith('0')) {
         formattedPhone = '62' + formattedPhone.slice(1);
@@ -39,7 +40,6 @@ export async function POST(request: Request) {
         `Cukup masukkan nomor WhatsApp Anda (*${formattedPhone}*) pada halaman tersebut untuk memunculkan link dan melihat riwayat donatur.\n\n` +
         `Jazakumullah Khairan Katsiran atas kontribusi terbaik Anda! 🙏`;
 
-      // Kirim via Fonnte
       const resFonnte = await fetch('https://api.fonnte.com/send', {
         method: 'POST',
         headers: { 'Authorization': fonnteToken },
