@@ -9,19 +9,56 @@ interface CampaignItem {
   title: string;
   slug: string;
   image: string;
+  category?: string;
   collectedRaw: number;
-  targetAmount: number;
+  targetAmount?: number;
+  targetRaw?: number;
   daysLeft?: number;
   donorsCount?: number;
 }
 
 interface CampaignProps {
+  initialData?: CampaignItem[];
   mendesak?: CampaignItem[];
   unggulan?: CampaignItem[];
   pilihan?: CampaignItem[];
 }
 
-export default function Campaign({ mendesak = [], unggulan = [], pilihan = [] }: CampaignProps) {
+export default function Campaign({ initialData = [], mendesak = [], unggulan = [], pilihan = [] }: CampaignProps) {
+  // Jika menggunakan props `initialData` langsung (seperti satu list gabungan)
+  if (initialData.length > 0 && mendesak.length === 0 && unggulan.length === 0 && pilihan.length === 0) {
+    return (
+      <div className="space-y-3.5 w-full text-left">
+        <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Daftar Program</h2>
+        <div className="space-y-3">
+          {initialData.map((item) => {
+            const target = item.targetAmount || item.targetRaw || 50000000;
+            const percentage = Math.min(Math.round((item.collectedRaw / target) * 100), 100);
+            return (
+              <Link key={item.id} href={`/campaign/${item.slug}`} className="group flex gap-3.5 items-center bg-white p-3.5 rounded-2xl border border-gray-200/90 shadow-sm hover:shadow-md transition block">
+                <div className="w-28 sm:w-32 aspect-[16/10] bg-gray-100 rounded-xl overflow-hidden shrink-0 shadow-inner">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                </div>
+                <div className="flex-1 space-y-1.5 py-0.5">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-[#0d5c91] transition-colors">{item.title}</h3>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-extrabold text-[#0d5c91]">
+                      Rp {Number(item.collectedRaw).toLocaleString('id-ID')}
+                    </p>
+                    <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#ff2e3b] h-full rounded-full" style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Jika menggunakan pemisahan section (Mendesak, Unggulan, Pilihan)
   return (
     <div className="space-y-6 w-full text-left">
       
@@ -38,7 +75,8 @@ export default function Campaign({ mendesak = [], unggulan = [], pilihan = [] }:
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             {mendesak.map((item) => {
-              const percentage = Math.min(Math.round((item.collectedRaw / (item.targetAmount || 50000000)) * 100), 100);
+              const target = item.targetAmount || item.targetRaw || 50000000;
+              const percentage = Math.min(Math.round((item.collectedRaw / target) * 100), 100);
               return (
                 <Link key={item.id} href={`/campaign/${item.slug}`} className="group border border-gray-200/90 rounded-xl overflow-hidden p-3 bg-gray-50/60 space-y-2.5 block hover:shadow-md transition">
                   <div className="aspect-[16/10] bg-gray-200 rounded-lg overflow-hidden relative">
@@ -78,7 +116,8 @@ export default function Campaign({ mendesak = [], unggulan = [], pilihan = [] }:
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             {unggulan.map((item) => {
-              const percentage = Math.min(Math.round((item.collectedRaw / (item.targetAmount || 50000000)) * 100), 100);
+              const target = item.targetAmount || item.targetRaw || 50000000;
+              const percentage = Math.min(Math.round((item.collectedRaw / target) * 100), 100);
               return (
                 <Link key={item.id} href={`/campaign/${item.slug}`} className="group border border-gray-200/90 rounded-xl overflow-hidden p-3 bg-gray-50/60 space-y-2.5 block hover:shadow-md transition">
                   <div className="aspect-[16/10] bg-gray-200 rounded-lg overflow-hidden">
