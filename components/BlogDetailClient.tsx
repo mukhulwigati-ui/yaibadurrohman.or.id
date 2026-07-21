@@ -1,3 +1,4 @@
+// app/blog/[slug]/BlogDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -5,14 +6,14 @@ import Link from 'next/link';
 import { PortableText } from '@portabletext/react';
 import RelatedNews from '@/components/RelatedNews';
 
-// Custom Serializer untuk PortableText
+// Custom Serializer untuk PortableText dengan ukuran teks yang nyaman dibaca
 const portableTextComponents = {
   types: {
     image: ({ value }: any) => {
       if (!value?.asset?.url) return null;
       return (
-        <div className="my-4 space-y-1.5 w-full text-left">
-          <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-2xs aspect-[16/9]">
+        <div className="my-5 space-y-2 w-full text-left">
+          <div className="rounded-2xl overflow-hidden bg-gray-50 border border-gray-200/90 shadow-sm aspect-[16/9]">
             <img 
               src={value.asset.url} 
               alt={typeof value.alt === 'string' ? value.alt : 'Gambar Berita'} 
@@ -20,7 +21,7 @@ const portableTextComponents = {
             />
           </div>
           {value.caption && typeof value.caption === 'string' && (
-            <p className="text-[10px] text-slate-400 font-normal text-center italic">
+            <p className="text-xs text-slate-500 font-medium text-center italic">
               {value.caption}
             </p>
           )}
@@ -38,12 +39,23 @@ const portableTextComponents = {
           href={hrefStr} 
           rel={rel} 
           target={target} 
-          className="text-sky-600 font-medium hover:underline"
+          className="text-[#0d5c91] font-bold hover:underline"
         >
           {children}
         </a>
       );
     },
+  },
+  block: {
+    normal: ({ children }: any) => <p className="mb-4 leading-relaxed">{children}</p>,
+    h1: ({ children }: any) => <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-6 mb-3">{children}</h1>,
+    h2: ({ children }: any) => <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-5 mb-2.5">{children}</h2>,
+    h3: ({ children }: any) => <h3 className="text-base sm:text-lg font-bold text-slate-800 mt-4 mb-2">{children}</h3>,
+    blockquote: ({ children }: any) => <blockquote className="border-l-4 border-[#0d5c91] pl-4 italic my-4 text-slate-600 bg-sky-50/50 py-2 rounded-r-xl">{children}</blockquote>,
+  },
+  list: {
+    bullet: ({ children }: any) => <ul className="list-disc pl-5 mb-4 space-y-1.5">{children}</ul>,
+    number: ({ children }: any) => <ol className="list-decimal pl-5 mb-4 space-y-1.5">{children}</ol>,
   },
 };
 
@@ -70,14 +82,14 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100/70 pt-6 pb-24">
-        <div className="w-full max-w-md mx-auto px-3 space-y-3 animate-pulse">
-          <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto" />
+      <div className="min-h-screen bg-gray-50 pt-6 pb-24">
+        <div className="w-full max-w-md mx-auto px-3 space-y-4 animate-pulse">
+          <div className="h-6 bg-gray-200 rounded-xl w-3/4 mx-auto" />
           <div className="aspect-[16/9] bg-gray-200 rounded-2xl w-full" />
-          <div className="space-y-2 pt-2">
-            <div className="h-4 bg-gray-200 rounded w-full" />
-            <div className="h-4 bg-gray-200 rounded w-full" />
-            <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="space-y-3 pt-2">
+            <div className="h-4 bg-gray-200 rounded-lg w-full" />
+            <div className="h-4 bg-gray-200 rounded-lg w-full" />
+            <div className="h-4 bg-gray-200 rounded-lg w-2/3" />
           </div>
         </div>
       </div>
@@ -86,9 +98,9 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
 
   if (!data || !data.article) {
     return (
-      <div className="min-h-screen bg-gray-100/70 pt-12 pb-24 text-center">
-        <p className="text-slate-500 text-sm font-normal">Artikel tidak ditemukan.</p>
-        <Link href="/blog" className="text-sky-600 text-xs font-semibold mt-3 inline-block">
+      <div className="min-h-screen bg-gray-50 pt-16 pb-24 text-center px-4">
+        <p className="text-slate-600 text-base font-semibold">Artikel tidak ditemukan.</p>
+        <Link href="/blog" className="text-[#0d5c91] text-xs font-bold mt-4 inline-block bg-sky-50 px-4 py-2.5 rounded-xl border border-sky-100">
           ← Kembali ke Berita
         </Link>
       </div>
@@ -116,33 +128,33 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
   const titleString = renderSafeString(article?.title, 'Detail Berita');
 
   return (
-    <div className="min-h-screen bg-gray-100/70 pt-4 pb-24">
-      {/* 🚀 KUNCI LEBAR SAMA DENGAN CONTAINER HOME & LIST BERITA */}
+    <div className="min-h-screen bg-gray-50 pt-4 pb-28">
+      {/* 🚀 KUNCI LEBAR KONSISTEN DENGAN CONTAINER LAINYA */}
       <div className="w-full max-w-md mx-auto px-3 space-y-4">
         
         {/* Card Utama Pembungkus Artikel */}
-        <article className="bg-white rounded-2xl p-4 shadow-2xs border border-gray-100/90 space-y-3.5">
+        <article className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200/90 space-y-4">
           
           {/* Breadcrumb Ringkas */}
-          <nav className="flex items-center gap-1.5 text-[11px] font-normal text-slate-400">
-            <Link href="/" className="hover:text-sky-600">Home</Link>
+          <nav className="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <Link href="/" className="hover:text-[#0d5c91]">Home</Link>
             <span>/</span>
-            <Link href="/blog" className="hover:text-sky-600">Berita</Link>
+            <Link href="/blog" className="hover:text-[#0d5c91]">Berita</Link>
           </nav>
 
-          {/* Judul Artikel (Warna Abu-Abu Lembut & Tidak Terlalu Tebal) */}
-          <h1 className="text-sm sm:text-base font-semibold text-slate-700 leading-snug tracking-normal">
+          {/* Judul Artikel (Ukuran proporsional, tegas dan mudah dibaca) */}
+          <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug tracking-tight">
             {titleString}
           </h1>
 
           {/* Waktu / Tanggal */}
-          <div className="text-[11px] font-normal text-slate-400 border-b border-gray-100 pb-2">
-            <span>{formattedDate}</span>
+          <div className="text-xs font-semibold text-slate-500 border-b border-gray-100 pb-3">
+            <span>📅 {formattedDate}</span>
           </div>
 
           {/* Gambar Utama Artikel */}
-          <div className="space-y-1.5 w-full pt-1">
-            <div className="rounded-xl overflow-hidden bg-gray-100 aspect-[16/9] w-full border border-gray-100">
+          <div className="space-y-2 w-full pt-1">
+            <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-[16/9] w-full border border-gray-200/80 shadow-inner">
               <img 
                 src={typeof article?.imageUrl === 'string' ? article.imageUrl : '/images/placeholder.jpg'} 
                 alt={renderSafeString(article?.alt, titleString)} 
@@ -150,14 +162,14 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
               />
             </div>
             {article?.caption && (
-              <p className="text-[10px] text-slate-400 font-normal text-center italic">
+              <p className="text-xs text-slate-500 font-medium text-center italic">
                 Foto: {renderSafeString(article.caption, '')}
               </p>
             )}
           </div>
 
-          {/* Isi Konten Teks Artikel */}
-          <div className="text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3 font-normal pt-2 border-b border-gray-100 pb-4">
+          {/* Isi Konten Teks Artikel (Ukuran dan Spasi Dibesarkan) */}
+          <div className="text-slate-800 text-sm sm:text-base leading-relaxed space-y-4 font-normal pt-2 border-b border-gray-100 pb-6">
             {article?.content ? (
               <PortableText value={article.content} components={portableTextComponents} />
             ) : (
@@ -165,12 +177,17 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
             )}
           </div>
 
-          {/* Tombol Bagikan Ringkas */}
+          {/* Tombol Bagikan */}
           <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] text-slate-400 font-normal">Bagikan berita ini:</span>
+            <span className="text-xs font-bold text-slate-600">Bagikan berita ini:</span>
             <button 
-              onClick={() => alert('Link artikel berhasil disalin!')} 
-              className="px-3 py-1.5 bg-slate-100 hover:bg-sky-50 hover:text-sky-600 text-slate-600 text-[11px] font-medium rounded-lg transition"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('Tautan artikel berhasil disalin!');
+                }
+              }} 
+              className="px-4 py-2 bg-sky-50 hover:bg-sky-100 text-[#0d5c91] text-xs font-bold rounded-xl transition border border-sky-100 shadow-2xs"
             >
               🔗 Salin Link
             </button>

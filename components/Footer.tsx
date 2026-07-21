@@ -14,7 +14,10 @@ export default function Footer() {
           Terms of Service
         </Link>
         <Link href="/bantuan" className="hover:text-sky-600 transition-colors">
-          Refund Policy
+          Bantuan
+        </Link>
+		<Link href="https://onislam.web.id" className="hover:text-sky-600 transition-colors">
+          Created by onislam
         </Link>
       </div>
     </footer>
