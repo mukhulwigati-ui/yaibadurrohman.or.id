@@ -1,4 +1,4 @@
-// app/campaign/[slug]/CampaignDetailClient.tsx
+// components/CampaignDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -47,7 +47,6 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
   const [input1, setInput1] = useState('');
   const [input2, setInput2] = useState('');
 
-  // Sesuaikan harga emas standar (asumsi per gram)
   const HARGA_EMAS = 1400000; 
   const NISHAB_TAHUNAN = 85 * HARGA_EMAS;
   const NISHAB_BULANAN = Math.round(NISHAB_TAHUNAN / 12);
@@ -144,22 +143,20 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
             Masukkan ke Form Nominal 📥
           </button>
         </div>
-         <p className="text-[10px] text-slate-400 text-center">Nilai di atas adalah estimasi. Zakat wajib ditunaikan jika harta mencapai nishab dan haul.</p>
+        <p className="text-[10px] text-slate-400 text-center">Nilai di atas adalah estimasi. Zakat wajib ditunaikan jika harta mencapai nishab dan haul.</p>
       </div>
     </div>
   );
 }
 
 // ===================================================================
-// 3. FORM DONASI COMPONENT
+// 3. FORM DONASI COMPONENT (Standar Duitku: Tanpa pilihan metode manual)
 // ===================================================================
 interface FormProps {
   donorName: string;
   setDonorName: (v: string) => void;
   donorPhone: string;
   setDonorPhone: (v: string) => void;
-  paymentMethod: string;
-  setPaymentMethod: (v: string) => void;
   amount: string;
   handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleDonate: () => Promise<void>;
@@ -171,8 +168,6 @@ const DonationFormFields = ({
   setDonorName,
   donorPhone,
   setDonorPhone,
-  paymentMethod,
-  setPaymentMethod,
   amount,
   handleAmountChange,
   handleDonate,
@@ -200,24 +195,6 @@ const DonationFormFields = ({
       />
     </div>
     <div>
-      <label className="text-xs font-semibold text-slate-700 block mb-1.5">Metode Pembayaran</label>
-      <select
-        className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-[#0d5c91] font-semibold bg-white cursor-pointer"
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
-        {/* 🚀 DISESUAIKAN DENGAN DUITKU.COM - Gunakan Kode Metode Pembayaran Resmi */}
-        <option value="GQ">🟢 QRIS (OVO, GoPay, Dana, ShopeePay, LinkAja)</option>
-        <option value="BC">🏦 BCA Virtual Account</option>
-        <option value="M2">🏦 Mandiri Virtual Account</option>
-        <option value="I1">🏦 BNI Virtual Account</option>
-        <option value="BR">🏦 BRI Virtual Account</option>
-        <option value="P1">🏦 Permata Bank Virtual Account</option>
-        <option value="VA">🌐 Virtual Account Lainnya (ATM Bersama/Prima/Alto)</option>
-      </select>
-       <p className="text-[10px] text-slate-400 mt-1">Pilih metode pembayaran untuk mendapatkan nomor VA/Kode QR.</p>
-    </div>
-    <div>
       <label className="text-xs font-semibold text-slate-700 block mb-1.5">Nominal Infak / Zakat (Rp)</label>
       <div className="relative flex items-center">
         <span className="absolute left-3.5 text-sm font-bold text-slate-500">Rp</span>
@@ -229,14 +206,14 @@ const DonationFormFields = ({
           onChange={handleAmountChange}
         />
       </div>
-       <p className="text-[10px] text-slate-400 mt-1">Minimal donasi Rp 1.000. Khusus QRIS disarankan min Rp 5.000.</p>
+      <p className="text-[10px] text-slate-400 mt-1">Metode pembayaran (QRIS, VA Bank, E-Wallet) akan dipilih di halaman resmi Duitku.</p>
     </div>
     <button
       onClick={handleDonate}
       disabled={submitting}
       className="w-full bg-[#ff2e3b] hover:bg-red-600 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl transition text-sm uppercase tracking-wider disabled:bg-gray-300 shadow-md"
     >
-      {submitting ? 'Memproses...' : 'Tunaikan Sekarang 🚀'}
+      {submitting ? 'Memproses...' : 'Lanjut ke Pembayaran 🚀'}
     </button>
   </div>
 );
@@ -255,8 +232,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  // 🚀 Default Pilihan metode pembayaran disesuaikan menjadi 'GQ' untuk QRIS Duitku
-  const [paymentMethod, setPaymentMethod] = useState('GQ'); 
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur' | 'laporan'>('cerita');
 
   useEffect(() => {
@@ -297,7 +272,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
           amount: cleanAmount,
           donorName: donorName.trim() || 'Hamba Allah',
           donorPhone: donorPhone.trim(), 
-          paymentMethod: paymentMethod,
+          paymentMethod: 'GQ', // Default ke QRIS/halaman utama Duitku
           referral: referral,
         }),
       });
@@ -499,7 +474,6 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
             <DonationFormFields 
               donorName={donorName} setDonorName={setDonorName}
               donorPhone={donorPhone} setDonorPhone={setDonorPhone}
-              paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
               amount={amount} handleAmountChange={handleAmountChange}
               handleDonate={handleDonate} submitting={submitting}
             />
