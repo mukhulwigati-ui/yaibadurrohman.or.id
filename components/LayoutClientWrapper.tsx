@@ -122,6 +122,13 @@ export default function LayoutClientWrapper({ children, donations = [] }: Layout
         {children}
       </main>
 
+      {/* 🚀 BOTTOM NAVIGATION / MENU BAWAH: Di-hidden secara mutlak jika berada di halaman Sanity Studio */}
+      {!isStudioPage && (
+        <nav aria-label="Bottom Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+          {/* Tempatkan elemen atau komponen bottom navigation Anda di sini */}
+        </nav>
+      )}
+
       {/* MODAL PWA PROMPT */}
       {isHomePage && !isStudioPage && showPrompt && !hasClosedPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
