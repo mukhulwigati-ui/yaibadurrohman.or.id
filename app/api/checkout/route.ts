@@ -1,3 +1,4 @@
+// app/api/checkout/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
@@ -43,8 +44,8 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // Menggunakan slug 'lazis-khoiro-ummah' sesuai berkas gateway pembayaran
-    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'lazis-khoiro-ummah';
+    // 🚀 DISESUAIKAN: Menggunakan slug project Pakasir untuk yaibadurrohman.or.id
+    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'yaibadurrohman';
     const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
 
     // Validasi internal sebelum fetch dilakukan agar parameter tidak kosong ke API Pakasir
@@ -85,8 +86,8 @@ export async function POST(request: Request) {
     // Properti ini berisi raw QR string jika memilih qris, atau nomor VA jika memilih bank transfer
     const paymentNumber = pakasirData.payment.payment_number || '';
     
-    // Penyusunan Link web-checkout alternatif
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lazisku.com';
+    // 🚀 DISESUAIKAN: Mengarahkan redirect URL ke domain yaibadurrohman.or.id
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.yaibadurrohman.or.id';
     const isQrisOnly = cleanMethod === 'qris' ? '&qris_only=1' : '';
     
     const fallbackUrlWeb = `https://app.pakasir.com/pay/${pakasirProjectSlug}/${cleanAmountNumber}?order_id=${generatedOrderId}${isQrisOnly}&redirect=${encodeURIComponent(`${siteUrl}/thank-you?order_id=${generatedOrderId}`)}`;

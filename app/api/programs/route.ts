@@ -14,14 +14,16 @@ export async function GET() {
       "slug": slug.current,
       title,
       category,
+      sectionType,
       "image": image.asset->url,
       collectedRaw,
       targetAmount,
+      daysLeft,
       description,
       donors
     }`;
 
-    // 🚀 PROTEKSI 2: Hapus properti no-store, biarkan mekanisme caching Next.js & CDN Sanity bekerja
+    // 🚀 PROTEKSI 2: Menggunakan mekanisme caching Next.js & CDN Sanity
     const sanityPrograms = await client.fetch(query);
 
     const formattedData = sanityPrograms.map((program: any) => {
@@ -32,13 +34,15 @@ export async function GET() {
         id: program.id,
         slug: program.slug,
         title: program.title,
-        // 🚀 FIXED: Kembalikan fallback ke format reguler agar sinkron dengan data beranda dan skema baru
         category: program.category || 'Kemanusiaan',
+        // 🚀 Mengikutkan sectionType agar komponen di frontend bisa memfilter section
+        sectionType: program.sectionType || 'pilihan',
         image: program.image || 'https://via.placeholder.com/385x176?text=No+Image',
         collected: `Rp ${rawAmount.toLocaleString('id-ID')}`,
         collectedRaw: rawAmount,
         target: `Rp ${targetAmount.toLocaleString('id-ID')}`,
         targetAmount: targetAmount,
+        daysLeft: program.daysLeft || null,
         description: program.description || null,
         donors: program.donors || []
       };
