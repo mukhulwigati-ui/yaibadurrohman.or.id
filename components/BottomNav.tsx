@@ -1,3 +1,4 @@
+// components/BottomNav.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -17,8 +18,10 @@ export default function BottomNav() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Sembunyikan di halaman detail campaign
-  if (pathname.startsWith('/campaign/')) return null;
+  // 🚀 Sembunyikan secara absolut di halaman detail campaign ATAU di dashboard Sanity Studio (/studio)
+  if (!pathname || pathname.startsWith('/campaign/') || pathname.startsWith('/studio')) {
+    return null;
+  }
 
   const navItems = [
     { label: 'Home', href: '/', icon: Home },
