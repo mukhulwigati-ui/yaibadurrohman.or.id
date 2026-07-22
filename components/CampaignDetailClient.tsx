@@ -47,7 +47,8 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
   const [input1, setInput1] = useState('');
   const [input2, setInput2] = useState('');
 
-  const HARGA_EMAS = 1400000;
+  // Sesuaikan harga emas standar (asumsi per gram)
+  const HARGA_EMAS = 1400000; 
   const NISHAB_TAHUNAN = 85 * HARGA_EMAS;
   const NISHAB_BULANAN = Math.round(NISHAB_TAHUNAN / 12);
 
@@ -100,7 +101,7 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
         {activeTab !== 'emas' ? (
           <>
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1.5">Pendapatan Utama / Tabungan (Rp)</label>
+              <label className="text-xs font-medium text-slate-600 block mb-1.5">Pendapatan Utama / Tabungan Per Bulan (Rp)</label>
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-[#0d5c91]"
@@ -110,7 +111,7 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1.5">Bonus / Aset Lainnya (Rp)</label>
+              <label className="text-xs font-medium text-slate-600 block mb-1.5">Tunjangan / Bonus / THR (Rp)</label>
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-[#0d5c91]"
@@ -133,16 +134,17 @@ function EmbeddedZakatCalculator({ onApplyAmount }: { onApplyAmount: (val: strin
           </div>
         )}
         <div className="bg-sky-50/60 border border-sky-100 p-4 text-center rounded-xl space-y-2">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">Wajib Zakat Anda</span>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">Estimasi Wajib Zakat Anda</span>
           <span className="text-xl font-extrabold text-[#0d5c91] block">Rp {totalZakat.toLocaleString('id-ID')}</span>
           <button
             disabled={totalZakat <= 0}
             onClick={() => onApplyAmount(totalZakat.toLocaleString('id-ID'))}
             className="w-full bg-[#0d5c91] hover:bg-sky-900 text-white text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider disabled:bg-gray-300 transition shadow-sm"
           >
-            Masukkan ke Form 📥
+            Masukkan ke Form Nominal 📥
           </button>
         </div>
+         <p className="text-[10px] text-slate-400 text-center">Nilai di atas adalah estimasi. Zakat wajib ditunaikan jika harta mencapai nishab dan haul.</p>
       </div>
     </div>
   );
@@ -204,14 +206,16 @@ const DonationFormFields = ({
         value={paymentMethod}
         onChange={(e) => setPaymentMethod(e.target.value)}
       >
-        <option value="qris">🟢 QRIS (E-Wallet & M-Banking Instant)</option>
-        <option value="bri_va">🏦 BRI Virtual Account</option>
-        <option value="bni_va">🏦 BNI Virtual Account</option>
-        <option value="cimb_niaga_va">🏦 CIMB Niaga Virtual Account</option>
-        <option value="permata_va">🏦 Permata Bank Virtual Account</option>
-        <option value="maybank_va">🏦 Maybank Virtual Account</option>
-        <option value="atm_bersama_va">🌐 ATM Bersama (Mandiri, BCA & Lainnya)</option>
+        {/* 🚀 DISESUAIKAN DENGAN DUITKU.COM - Gunakan Kode Metode Pembayaran Resmi */}
+        <option value="GQ">🟢 QRIS (OVO, GoPay, Dana, ShopeePay, LinkAja)</option>
+        <option value="BC">🏦 BCA Virtual Account</option>
+        <option value="M2">🏦 Mandiri Virtual Account</option>
+        <option value="I1">🏦 BNI Virtual Account</option>
+        <option value="BR">🏦 BRI Virtual Account</option>
+        <option value="P1">🏦 Permata Bank Virtual Account</option>
+        <option value="VA">🌐 Virtual Account Lainnya (ATM Bersama/Prima/Alto)</option>
       </select>
+       <p className="text-[10px] text-slate-400 mt-1">Pilih metode pembayaran untuk mendapatkan nomor VA/Kode QR.</p>
     </div>
     <div>
       <label className="text-xs font-semibold text-slate-700 block mb-1.5">Nominal Infak / Zakat (Rp)</label>
@@ -225,6 +229,7 @@ const DonationFormFields = ({
           onChange={handleAmountChange}
         />
       </div>
+       <p className="text-[10px] text-slate-400 mt-1">Minimal donasi Rp 1.000. Khusus QRIS disarankan min Rp 5.000.</p>
     </div>
     <button
       onClick={handleDonate}
@@ -250,7 +255,8 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('qris');
+  // 🚀 Default Pilihan metode pembayaran disesuaikan menjadi 'GQ' untuk QRIS Duitku
+  const [paymentMethod, setPaymentMethod] = useState('GQ'); 
   const [activeTab, setActiveTab] = useState<'cerita' | 'donatur' | 'laporan'>('cerita');
 
   useEffect(() => {
@@ -298,6 +304,7 @@ export default function CampaignDetailClient({ slug, referral }: { slug: string;
 
       const json = await res.json();
       if (json.success && json.paymentUrl) {
+        // 🚀 Redirect donatur langsung ke halaman pembayaran resmi Duitku
         window.location.href = json.paymentUrl;
       } else {
         alert(json.error || 'Gagal memproses tautan pembayaran.');

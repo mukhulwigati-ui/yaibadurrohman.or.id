@@ -1,6 +1,7 @@
 // app/api/checkout/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,14 +25,14 @@ export async function POST(request: Request) {
     // 🚀 LOGIKA AFILIASI: Tangkap nomor WhatsApp fundraiser yang dioper oleh frontend
     const fundraiserPhone = body.fundraiserPhone || body.referral || '';
     
-    // 🚀 DUKUNGAN MULTI-PAYMENT: Mengambil pilihan dari frontend. Fallback otomatis ke 'qris'
-    const paymentMethod = body.paymentMethod || 'qris';
-    const cleanMethod = String(paymentMethod).toLowerCase().trim();
+    // 🚀 DUKUNGAN METODE PEMBAYARAN DUITKU (Default 'GQ' untuk QRIS, atau sesuai kode pilihan user)
+    const paymentMethod = body.paymentMethod || 'GQ'; 
+    const cleanMethod = String(paymentMethod).toUpperCase().trim();
     
     const rawAmount = body.amount || body.nominal || 0;
     const cleanAmountNumber = Number(String(rawAmount).replace(/\D/g, ''));
 
-    // Validasi dasar transaksi diturunkan menjadi Rp 1.000 agar sinkron dengan Pakasir QRIS
+    // Validasi dasar transaksi minimal Rp 1.000
     if (!slug || !cleanAmountNumber || cleanAmountNumber < 1000) {
       return NextResponse.json(
         { success: false, error: 'Data tidak valid. Minimal donasi adalah Rp 1.000' },
@@ -44,56 +45,66 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // 🚀 DISESUAIKAN: Menggunakan slug project Pakasir untuk yaibadurrohman.or.id
-    const pakasirProjectSlug = process.env.PAKASIR_PROJECT || process.env.PAKASIR_SLUG || 'yaibadurrohman';
-    const pakasirApiKey = process.env.PAKASIR_API_KEY || '';
+    // 🚀 KONFIGURASI DUITKU
+    const merchantCode = process.env.DUITKU_MERCHANT_CODE || '';
+    const apiKey = process.env.DUITKU_API_KEY || '';
 
-    // Validasi internal sebelum fetch dilakukan agar parameter tidak kosong ke API Pakasir
-    if (!pakasirProjectSlug || !pakasirProjectSlug.trim()) {
+    if (!merchantCode || !apiKey) {
       return NextResponse.json(
-        { success: false, error: 'Internal Server Error: Identitas nama project gateway kosong.' },
+        { success: false, error: 'Internal Server Error: Kredensial Duitku (Merchant Code / API Key) belum disetel.' },
         { status: 500 }
       );
     }
 
-    if (!pakasirApiKey || !pakasirApiKey.trim()) {
-      console.error('⚠️ Kredensial PAKASIR_API_KEY belum dikonfigurasi di file environment variables server!');
-    }
+    // Tentukan URL API Duitku (Gunakan sandbox untuk testing, atau production untuk live)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const duitkuBaseUrl = isProduction ? 'https://api-prod.duitku.com' : 'https://api-sandbox.duitku.com';
+    const targetDuitkuUrl = `${duitkuBaseUrl}/webapi/api/merchant/v2/inquiry`;
 
-    // Endpoint dinamis sesuai pilihan (qris, bri_va, bni_va, dll.)
-    const targetPakasirUrl = `https://app.pakasir.com/api/transactioncreate/${cleanMethod}`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.yaibadurrohman.or.id';
+    const callbackUrl = `${siteUrl}/api/callback`;
+    const returnUrl = `${siteUrl}/thank-you?order_id=${generatedOrderId}`;
 
-    const pakasirResponse = await fetch(targetPakasirUrl, {
+    // 🚀 GENERATE SIGNATURE DUITKU
+    // Rumus: MD5(merchantCode + orderId + amount + apiKey)
+    const signature = crypto
+      .createHash('md5')
+      .update(`${merchantCode}${generatedOrderId}${cleanAmountNumber}${apiKey}`)
+      .digest('hex');
+
+    const duitkuPayload = {
+      merchantCode: merchantCode,
+      paymentAmount: cleanAmountNumber,
+      paymentMethod: cleanMethod,
+      merchantOrderId: generatedOrderId,
+      productDetails: `Donasi Program ${slug}`,
+      email: donorPhone ? `${donorPhone.replace(/[^0-9]/g, '')}@yaibadurrohman.or.id` : 'donatur@yaibadurrohman.or.id',
+      phoneNumber: donorPhone,
+      customerVaName: donorName,
+      callbackUrl: callbackUrl,
+      returnUrl: returnUrl,
+      signature: signature,
+      expiryPeriod: 1440, // Masa berlaku 24 jam
+    };
+
+    const duitkuResponse = await fetch(targetDuitkuUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        project: pakasirProjectSlug.trim(),
-        order_id: generatedOrderId,
-        amount: cleanAmountNumber,
-        api_key: pakasirApiKey,
-      }),
+      body: JSON.stringify(duitkuPayload),
     });
 
-    const pakasirData = await pakasirResponse.json();
+    const duitkuData = await duitkuResponse.json();
 
-    // Memeriksa kegagalan respon atau ketiadaan data objek payment dari Pakasir
-    if (!pakasirResponse.ok || !pakasirData.payment) {
-      throw new Error(pakasirData.message || `Gagal membuat transaksi ${cleanMethod} ke gateway API Pakasir.`);
+    // Memeriksa kegagalan respon dari API Duitku
+    if (!duitkuResponse.ok || duitkuData.statusCode !== '00') {
+      throw new Error(duitkuData.statusMessage || `Gagal membuat transaksi ke gateway Duitku.`);
     }
 
-    // Properti ini berisi raw QR string jika memilih qris, atau nomor VA jika memilih bank transfer
-    const paymentNumber = pakasirData.payment.payment_number || '';
-    
-    // 🚀 DISESUAIKAN: Mengarahkan redirect URL ke domain yaibadurrohman.or.id
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.yaibadurrohman.or.id';
-    const isQrisOnly = cleanMethod === 'qris' ? '&qris_only=1' : '';
-    
-    const fallbackUrlWeb = `https://app.pakasir.com/pay/${pakasirProjectSlug}/${cleanAmountNumber}?order_id=${generatedOrderId}${isQrisOnly}&redirect=${encodeURIComponent(`${siteUrl}/thank-you?order_id=${generatedOrderId}`)}`;
-    
-    // Gunakan payment_url bawaan dari objek gateway jika tersedia, atau arahkan ke fallback link web checkout
-    const paymentUrl = pakasirData.payment.payment_url || fallbackUrlWeb;
+    const paymentUrl = duitkuData.paymentUrl || '';
+    const paymentNumber = duitkuData.vaNumber || duitkuData.qrString || '';
+    const totalPayment = Number(duitkuData.amount || cleanAmountNumber);
 
     // 🚀 1. MENULIS DATA TRANSAKSI LENGKAP KE SANITY
     await client.create({
@@ -102,7 +113,7 @@ export async function POST(request: Request) {
       donorName: String(donorName),
       donorPhone: String(donorPhone),
       amount: Number(cleanAmountNumber),         
-      totalAmount: Number(pakasirData.payment.total_payment || cleanAmountNumber), 
+      totalAmount: Number(totalPayment), 
       status: 'pending',
       slug: String(slug),
       paymentMethod: String(cleanMethod), 
@@ -111,9 +122,9 @@ export async function POST(request: Request) {
       fundraiserPhone: fundraiserPhone ? String(fundraiserPhone).trim() : '',
     });
 
-    console.log(`🔒 TRANSAKSI BERHASIL DICATAT DI SANITY: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
+    console.log(`🔒 TRANSAKSI DUITKU DICATAT DI SANITY: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
 
-    // 🚀 2. SYNC KE GOOGLE SHEET (Ditempatkan sebelum response agar serverless Vercel tidak memutus koneksi)
+    // 🚀 2. SYNC KE GOOGLE SHEET
     const googleSheetScriptUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
 
     if (googleSheetScriptUrl && googleSheetScriptUrl.trim()) {
@@ -124,7 +135,7 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             orderId: generatedOrderId,
             donorName: String(donorName),
-            donorPhone: `'${String(donorPhone)}`, // Ditambah petik agar awalan 08 tidak terpotong di Google Sheet
+            donorPhone: `'${String(donorPhone)}`, 
             amount: cleanAmountNumber,
             programSlug: String(slug),
             paymentMethod: cleanMethod,
@@ -141,7 +152,7 @@ export async function POST(request: Request) {
       console.warn('⚠️ GOOGLE_SHEET_WEBHOOK_URL belum dipasang di environment variables.');
     }
 
-    // Mengembalikan response sukses ke komponen frontend
+    // Mengembalikan response sukses ke frontend
     return NextResponse.json({
       success: true,
       orderId: generatedOrderId,
@@ -152,7 +163,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('🔥 BACKEND CHECKOUT ERROR VIA API PAKASIR:', error);
+    console.error('🔥 BACKEND CHECKOUT ERROR VIA API DUITKU:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

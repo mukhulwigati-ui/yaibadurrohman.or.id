@@ -1,3 +1,4 @@
+// components/LiveDonationNotification.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -81,11 +82,11 @@ export default function LiveDonationNotification({ donations }: LiveDonationNoti
         <div className="flex flex-col text-left">
           <p className="text-sm text-gray-900 leading-relaxed font-medium">
             Alhamdulillah, <span className="text-gray-950 font-bold">{currentDonation.name}</span> baru saja bersedekah{' '}
-            <span className="text-emerald-600 font-black">{currentDonation.amount}</span> untuk <span className="text-cyan-600 font-semibold">{currentDonation.program}</span>
+            <span className="text-emerald-600 font-black">{currentDonation.amount}</span> untuk <span className="text-[#0d5c91] font-semibold">{currentDonation.program}</span>
           </p>
           
-          <span className="text-[10px] text-gray-400 tracking-wide mt-0.5 block italic">
-            🕒 {currentDonation.timeLabel}
+          <span className="text-[10px] text-gray-400 tracking-wide mt-0.5 block italic flex items-center gap-1">
+            <span>🕒</span> {currentDonation.timeLabel} • Yayasan Islam Ibadurrohman
           </span>
         </div>
       </div>

@@ -1,16 +1,18 @@
+// app/api/callback/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 import { google } from 'googleapis';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
 // 🚀 BYPASS CLIENT: Murni untuk update data esensial program website
 const client = createClient({
-  projectId: '61d8vnuq',
+  projectId: '915u7hh1',
   dataset: 'production',
   useCdn: false,
   apiVersion: '2024-01-01',
-  token: 'sk44JM4AlD6urcLa9Ak9vvnRpLGlsRai9aftW1wPA4w9zxwhrCpKREk2ArKU25K4kENIPxVXenu4kZhm2cOSaxGP69kz8az2qM2BZDIVzqyAGLjIvVTGKMu39CExUrKwbw2wCb2bfxKPgZ4lqEt2nwLZT4HEc4XT1qfrZ0i6KYupIlT6IOlP',
+  token: 'sk4AP9tJp0fIN1khUK99zeKBzXjOOEDDZzQ97KfQ94YtfBK6Qcj0d4Y2gErC4g6JkU4BgZDcBYYc4SvSVYrOoOAPGhyQ3AQV6oUDVNDVaAwWJxavREqrpyEJ8TvZTMIu9J4Ne4HAtmUpcgexMdrxniSWtf5QdoC657E6lOqbdkzIrgBcQyUX',
 });
 
 // ===================================================================
@@ -59,24 +61,48 @@ async function appendToGoogleSheets(data: {
 }
 
 // ===================================================================
-// MAIN WEBHOOK CONTROLLER
+// MAIN WEBHOOK CONTROLLER (DUITKU CALLBACK)
 // ===================================================================
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
+    
+    // 🚀 Duitku Parameter Mapping
+    const merchantCode = payload.merchantCode;
     const amount = payload.amount;
-    const order_id = payload.order_id;
-    const status = payload.status; 
+    const merchantOrderId = payload.merchantOrderId || payload.order_id;
+    const signature = payload.signature;
+    const resultCode = payload.resultCode; // '00' menandakan sukses di Duitku
 
-    const cleanOrderId = order_id ? String(order_id).trim() : '';
-    if (!cleanOrderId) return NextResponse.json({ success: false, message: "Order ID tidak ditemukan." }, { status: 400 });
-
-    const cleanStatus = status ? String(status).toLowerCase().trim() : '';
-    if (cleanStatus !== 'completed' && cleanStatus !== 'success' && cleanStatus !== 'paid') {
-      return NextResponse.json({ success: true, message: `Status (${status}) diabaikan.` });
+    const cleanOrderId = merchantOrderId ? String(merchantOrderId).trim() : '';
+    if (!cleanOrderId) {
+      return NextResponse.json({ success: false, message: "Order ID tidak ditemukan." }, { status: 400 });
     }
 
-    // 1. Ambil Data Transaksi
+    // 🚀 VALIDASI SIGNATURE DUITKU (Keamanan Callback)
+    const duitkuApiKey = process.env.DUITKU_API_KEY || '';
+    const duitkuMerchantCode = process.env.DUITKU_MERCHANT_CODE || merchantCode;
+
+    if (duitkuApiKey && signature) {
+      const calculatedSignature = crypto
+        .createHash('md5')
+        .update(`${duitkuMerchantCode}${amount}${cleanOrderId}${duitkuApiKey}`)
+        .digest('hex');
+
+      if (signature !== calculatedSignature) {
+        console.warn(`⚠️ Warning: Invalid Duitku signature for order: ${cleanOrderId}`);
+        return NextResponse.json({ success: false, message: 'Invalid Signature' }, { status: 400 });
+      }
+    }
+
+    // Cek apakah status dari Duitku sukses (resultCode '00' atau status sukses lainnya)
+    const isSuccess = resultCode === '00' || payload.status === 'completed' || payload.status === 'success' || payload.status === 'paid';
+    
+    if (!isSuccess) {
+      return NextResponse.json({ success: true, message: `Status pembayaran (${resultCode || payload.status}) diabaikan / belum sukses.` });
+    }
+
+    // 1. Ambil Data Transaksi dari Sanity
     const transactionQuery = `*[_type == "donationTransaction" && orderId == $orderId][0]`;
     const pendingTransaction = await client.fetch(transactionQuery, { orderId: cleanOrderId });
 
@@ -86,17 +112,22 @@ export async function POST(request: Request) {
     let paymentMethodUsed = "QRIS";
 
     if (pendingTransaction) {
-      if (pendingTransaction.status === 'success') return NextResponse.json({ success: true, message: "Sudah diproses." });
+      if (pendingTransaction.status === 'success') {
+        return NextResponse.json({ success: true, message: "Sudah diproses sebelumnya." });
+      }
       if (pendingTransaction.donorName) donorNameFromForm = String(pendingTransaction.donorName).trim();
       if (pendingTransaction.donorPhone) donorPhoneFromForm = String(pendingTransaction.donorPhone).trim();
       if (pendingTransaction.slug) programSlug = String(pendingTransaction.slug).toLowerCase().trim();
       if (pendingTransaction.paymentMethod) paymentMethodUsed = String(pendingTransaction.paymentMethod).toUpperCase();
     }
 
-    // 2. Ambil Program
+    // 2. Ambil Program di Sanity
     const findQuery = `*[_type == "program" && slug.current == $slug][0] { _id, title, collectedRaw, donors }`;
     const finalProgram = await client.fetch(findQuery, { slug: programSlug });
-    if (!finalProgram) return NextResponse.json({ success: false, message: `Program tidak ditemukan.` }, { status: 404 });
+    
+    if (!finalProgram) {
+      return NextResponse.json({ success: false, message: `Program tidak ditemukan.` }, { status: 404 });
+    }
 
     const donationAmount = Number(amount) || Number(pendingTransaction?.amount) || 0;
     const currentDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -106,13 +137,12 @@ export async function POST(request: Request) {
     // 3. JALANKAN MUTASI SANITY & LOGIKA AFILIASI
     // ===================================================================
     if (pendingTransaction) {
-      // Tandai sukses
+      // Tandai sukses transaksi
       await client.patch(pendingTransaction._id).set({ status: 'success' }).commit();
 
       // 🚀 CEK AFILIASI: Hitung Ujrah 10%
-      const refPhone = pendingTransaction.fundraiserPhone; // Sinkron dengan field pelacak fundraiserPhone
+      const refPhone = pendingTransaction.fundraiserPhone;
       if (refPhone) {
-        // Cek variasi format nomor di DB relawan (lokal maupun internasional)
         let formattedRefPhone = refPhone.replace(/[^0-9]/g, '');
         let alternativeRefPhone = formattedRefPhone;
         
@@ -138,7 +168,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Update Progress Bar Program
+    // Update Progress Bar Program & Tambah Donatur
     await client.patch(finalProgram._id)
       .setIfMissing({ collectedRaw: 0, donors: [] })
       .inc({ collectedRaw: donationAmount }) 
@@ -168,7 +198,6 @@ export async function POST(request: Request) {
       let formattedPhone = donorPhoneFromForm.replace(/[^0-9]/g, '');
       if (formattedPhone.startsWith('0')) formattedPhone = '62' + formattedPhone.slice(1);
       
-      // 🚀 TEMPLATE KUITANSI PREMIUM WHATSAPP
       const messageText = `*DONASI BERHASIL DITERIMA* 🎉
   
 Jazakumullah khairan, Kak *${donorNameFromForm}*. Donasi Anda telah berhasil kami verifikasi dengan detail berikut:
@@ -182,8 +211,8 @@ Jazakumullah khairan, Kak *${donorNameFromForm}*. Donasi Anda telah berhasil kam
 Semoga sedekah yang ditunaikan menjadi penggugur dosa, pembuka pintu rezeki, dan membawa keberkahan yang berlipat ganda untuk Anda beserta keluarga. Aamiin Yaa Rabbal 'Aalamiin.
 
 ----------------------------
-*LAZIS Khoiro Ummah*
-_Salurkan kepedulian Anda secara amanah & transparan_`;
+*Yayasan Islam Ibadurrohman Cilacap*
+_Salurkan kepedulian Anda secara amanah & transparan di yaibadurrohman.or.id_`;
 
       try {
         await fetch('https://api.fonnte.com/send', {
