@@ -49,7 +49,7 @@ export default defineConfig([
                 }
               },
               React.createElement('img', {
-                src: '/images/lazisku.png',
+                src: '/images/logo-ibad.png',
                 alt: 'Logo lazisku',
                 style: {
                   height: '52px', 
