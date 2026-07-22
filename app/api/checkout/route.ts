@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
-// 🚀 BYPASS TEST: Memasukkan string token Editor langsung ke kode untuk melewati sumbatan Env Hosting
+// 🚀 INITIALIZE SANITY CLIENT DENGAN TOKEN BYPASS EDITOR
 const client = createClient({
   projectId: '915u7hh1', 
   dataset: 'production',
@@ -45,18 +45,18 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
     const generatedOrderId = `INV-${prefix}-${Date.now()}`;
 
-    // 🚀 KONFIGURASI DUITKU
-    const merchantCode = process.env.DUITKU_MERCHANT_CODE || '';
+    // 🚀 KONFIGURASI KREDENSIAL DUITKU RESMI (Merchant Code: D23767)
+    const merchantCode = process.env.DUITKU_MERCHANT_CODE || 'D23767';
     const apiKey = process.env.DUITKU_API_KEY || '';
 
     if (!merchantCode || !apiKey) {
       return NextResponse.json(
-        { success: false, error: 'Internal Server Error: Kredensial Duitku (Merchant Code / API Key) belum disetel.' },
+        { success: false, error: 'Internal Server Error: Kredensial Duitku (API Key) belum disetel di Environment Variables.' },
         { status: 500 }
       );
     }
 
-    // Tentukan URL API Duitku (Gunakan sandbox untuk testing, atau production untuk live)
+    // Tentukan URL API Duitku (Gunakan production karena status merchant aktif / sandbox jika uji coba)
     const isProduction = process.env.NODE_ENV === 'production';
     const duitkuBaseUrl = isProduction ? 'https://api-prod.duitku.com' : 'https://api-sandbox.duitku.com';
     const targetDuitkuUrl = `${duitkuBaseUrl}/webapi/api/merchant/v2/inquiry`;
@@ -95,7 +95,18 @@ export async function POST(request: Request) {
       body: JSON.stringify(duitkuPayload),
     });
 
-    const duitkuData = await duitkuResponse.json();
+    const responseText = await duitkuResponse.text();
+    let duitkuData;
+
+    try {
+      duitkuData = JSON.parse(responseText);
+    } catch (e) {
+      console.error('🔥 Respon mentah bukan JSON dari Duitku:', responseText);
+      return NextResponse.json(
+        { success: false, error: 'Gagal memproses respons dari gateway Duitku (Invalid JSON).' },
+        { status: 500 }
+      );
+    }
 
     // Memeriksa kegagalan respon dari API Duitku
     if (!duitkuResponse.ok || duitkuData.statusCode !== '00') {
