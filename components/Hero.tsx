@@ -107,7 +107,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
     }
   };
 
-  // Handle Pendaftaran Fundraiser Baru (Langsung Aktif Otomatis)
+  // Handle Pendaftaran Fundraiser Baru
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) return;
@@ -140,11 +140,11 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white border border-gray-200/90 shadow-xs rounded-none overflow-hidden p-3 space-y-4">
+    <div className="w-full max-w-md mx-auto bg-white border border-gray-200/90 shadow-sm rounded-none overflow-hidden p-4 space-y-4">
       <style jsx>{`
         @keyframes glowing-effect {
           0% { box-shadow: 0 0 0 0 rgba(13, 92, 145, 0.6); }
-          70% { box-shadow: 0 0 0 8px rgba(13, 92, 145, 0); }
+          70% { box-shadow: 0 0 0 10px rgba(13, 92, 145, 0); }
           100% { box-shadow: 0 0 0 0 rgba(13, 92, 145, 0); }
         }
         .animate-glow {
@@ -153,7 +153,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
       `}</style>
 
       <div>
-        <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden rounded-none border border-gray-100 shadow-2xs">
+        <div className="relative w-full aspect-[16/9] bg-slate-100 overflow-hidden rounded-none border border-gray-100 shadow-inner">
           {banners.map((banner, index) => {
             const isActive = index === currentIndex;
             return (
@@ -186,7 +186,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`transition-all duration-300 ${
-                    isActive ? 'w-6 h-1.5 bg-sky-500 rounded-full' : 'w-1.5 h-1.5 bg-sky-200 hover:bg-sky-400 rounded-full'
+                    isActive ? 'w-8 h-2 bg-[#0d5c91] rounded-none' : 'w-2 h-2 bg-gray-300 hover:bg-sky-400 rounded-none'
                   }`}
                   aria-label={`Slide ${idx + 1}`}
                 />
@@ -196,12 +196,13 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
         )}
       </div>
 
-      <div className="pt-1 pb-2">
-        <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 mb-3 tracking-tight">
+      <div className="pt-2 pb-1">
+        <h3 className="text-sm sm:text-base font-extrabold text-gray-900 mb-4 tracking-tight">
           Raih Keberkahan Dihari Ini!
         </h3>
 
-        <div className="grid grid-cols-4 gap-y-3.5 gap-x-2 text-center">
+        {/* 🚀 GRID KATEGORI: Bulatan diperbesar menjadi w-14 h-14 sm:w-16 sm:h-16 */}
+        <div className="grid grid-cols-4 gap-y-4 gap-x-2 text-center">
           {displayedCategories.map((cat, index) => {
             if (cat.isFundraiserBtn) {
               return (
@@ -213,10 +214,10 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                   }}
                   className="group flex flex-col items-center focus:outline-none"
                 >
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
-                    <Image src={cat.icon} alt={cat.name} width={48} height={48} className="w-full h-full object-cover" />
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
+                    <Image src={cat.icon} alt={cat.name} width={64} height={64} className="w-full h-full object-cover" />
                   </div>
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600 leading-tight">
+                  <span className="text-[11px] sm:text-xs font-bold text-gray-700 mt-2 tracking-tight group-hover:text-[#0d5c91] leading-tight">
                     {cat.name}
                   </span>
                 </button>
@@ -226,13 +227,13 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
             return (
               <Link key={index} href={cat.href} className="group flex flex-col items-center">
                 <div
-                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative ${
-                    cat.glowing ? 'animate-glow ring-2 ring-sky-400/80' : ''
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative ${
+                    cat.glowing ? 'animate-glow ring-2 ring-sky-400' : ''
                   }`}
                 >
-                  <Image src={cat.icon} alt={cat.name} width={48} height={48} className="w-full h-full object-cover" />
+                  <Image src={cat.icon} alt={cat.name} width={64} height={64} className="w-full h-full object-cover" />
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600 leading-tight">
+                <span className="text-[11px] sm:text-xs font-bold text-gray-700 mt-2 tracking-tight group-hover:text-[#0d5c91] leading-tight">
                   {cat.name}
                 </span>
               </Link>
@@ -244,12 +245,12 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
               onClick={() => setIsExpanded(true)}
               className="group flex flex-col items-center focus:outline-none"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </div>
-              <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600">
+              <span className="text-[11px] sm:text-xs font-bold text-gray-700 mt-2 tracking-tight group-hover:text-[#0d5c91]">
                 Lainnya
               </span>
             </button>
@@ -260,12 +261,12 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
               onClick={() => setIsExpanded(false)}
               className="group flex flex-col items-center focus:outline-none"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-50 border border-gray-200/80 shadow-2xs flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-50 border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 group-active:scale-95 relative">
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <span className="text-[10px] sm:text-[11px] font-semibold text-gray-700 mt-1.5 tracking-tight group-hover:text-sky-600">
+              <span className="text-[11px] sm:text-xs font-bold text-gray-700 mt-2 tracking-tight group-hover:text-[#0d5c91]">
                 Tutup
               </span>
             </button>
@@ -274,25 +275,25 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
       </div>
 
       {showFundraiserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-xs bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 text-left space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-left space-y-4">
             <button
               onClick={() => {
                 setShowFundraiserModal(false);
                 setSuccessMessage('');
                 setErrorMessage('');
               }}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition"
+              className="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition"
               aria-label="Tutup"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="text-center space-y-2 pt-1">
-              <div className="w-10 h-10 bg-sky-50 text-[#0d5c91] rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <UserPlus className="w-5 h-5" />
+              <div className="w-12 h-12 bg-sky-50 text-[#0d5c91] rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <UserPlus className="w-6 h-6" />
               </div>
-              <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 tracking-tight">
+              <h4 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight">
                 Portal Fundraiser
               </h4>
               
@@ -300,7 +301,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 <button
                   type="button"
                   onClick={() => { setModalMode('register'); setErrorMessage(''); setSuccessMessage(''); }}
-                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition ${
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
                     modalMode === 'register' ? 'bg-white text-[#0d5c91] shadow-xs' : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
@@ -309,7 +310,7 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 <button
                   type="button"
                   onClick={() => { setModalMode('login'); setErrorMessage(''); setSuccessMessage(''); }}
-                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition ${
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
                     modalMode === 'login' ? 'bg-white text-[#0d5c91] shadow-xs' : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
@@ -319,17 +320,17 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
             </div>
 
             {successMessage ? (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-xl text-center space-y-2 animate-in fade-in">
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-center space-y-2 animate-in fade-in">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <p className="text-[11px] font-semibold leading-relaxed">{successMessage}</p>
+                <p className="text-xs font-semibold leading-relaxed">{successMessage}</p>
               </div>
             ) : modalMode === 'register' ? (
-              <form onSubmit={handleRegister} className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-700 uppercase">Nama Lengkap</label>
+              <form onSubmit={handleRegister} className="space-y-3.5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700">Nama Lengkap</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                      <User className="w-3.5 h-3.5" />
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                      <User className="w-4 h-4" />
                     </span>
                     <input 
                       type="text"
@@ -337,16 +338,16 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                       placeholder="Masukkan nama lengkap"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-700 uppercase">Nomor WhatsApp</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700">Nomor WhatsApp</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                      <Phone className="w-3.5 h-3.5" />
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                      <Phone className="w-4 h-4" />
                     </span>
                     <input 
                       type="tel"
@@ -354,14 +355,14 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                       placeholder="Contoh: 08123456789"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
                     />
                   </div>
                 </div>
 
                 {errorMessage && (
-                  <div className="flex items-center gap-1.5 p-2.5 text-[10px] font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-100">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex items-center gap-2 p-3 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errorMessage}</span>
                   </div>
                 )}
@@ -369,11 +370,11 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 bg-[#0d5c91] hover:bg-sky-900 disabled:bg-gray-300 text-white font-bold text-[11px] uppercase tracking-wider py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2"
+                  className="w-full mt-3 bg-[#0d5c91] hover:bg-sky-900 disabled:bg-gray-300 text-white font-bold text-xs sm:text-sm uppercase tracking-wider py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Mendaftarkan...</span>
                     </>
                   ) : (
@@ -382,12 +383,12 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleLogin} className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-700 uppercase">Nomor WhatsApp Terdaftar</label>
+              <form onSubmit={handleLogin} className="space-y-3.5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700">Nomor WhatsApp Terdaftar</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                      <Phone className="w-3.5 h-3.5" />
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                      <Phone className="w-4 h-4" />
                     </span>
                     <input 
                       type="tel"
@@ -395,14 +396,14 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                       placeholder="Contoh: 08123456789"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
+                      className="w-full pl-10 pr-3.5 py-3 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#0d5c91] focus:bg-white text-gray-800"
                     />
                   </div>
                 </div>
 
                 {errorMessage && (
-                  <div className="flex items-center gap-1.5 p-2.5 text-[10px] font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-100">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex items-center gap-2 p-3 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errorMessage}</span>
                   </div>
                 )}
@@ -410,11 +411,11 @@ export default function Hero({ initialBanners = [] }: HeroProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 bg-[#0d5c91] hover:bg-sky-900 disabled:bg-gray-300 text-white font-bold text-[11px] uppercase tracking-wider py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-2"
+                  className="w-full mt-3 bg-[#0d5c91] hover:bg-sky-900 disabled:bg-gray-300 text-white font-bold text-xs sm:text-sm uppercase tracking-wider py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Memeriksa...</span>
                     </>
                   ) : (
